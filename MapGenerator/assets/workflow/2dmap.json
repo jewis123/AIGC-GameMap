@@ -1,0 +1,225 @@
+{
+  "22": {
+    "inputs": {
+      "ckpt_name": "xl\\Albedobase_SDXLHyper_v1.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "23": {
+    "inputs": {
+      "lora_name": "xl\\游戏地图XL_1.0_Tr-youxiditu.safetensors",
+      "strength_model": 1.2,
+      "strength_clip": 1.2,
+      "model": [
+        "22",
+        0
+      ],
+      "clip": [
+        "22",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "24": {
+    "inputs": {
+      "text": "youxiditu,a 2D RPG scene map, isometric fixed equal - height perspective with clear details. ",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "25": {
+    "inputs": {
+      "text": "text,bad_quality,blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "26": {
+    "inputs": {
+      "image": "New UnTitled.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "27": {
+    "inputs": {
+      "control_net_name": "sdxl_segmentation_ade20k_controlnet.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "28": {
+    "inputs": {
+      "strength": 1.5,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "35",
+        0
+      ],
+      "negative": [
+        "25",
+        0
+      ],
+      "control_net": [
+        "27",
+        0
+      ],
+      "image": [
+        "26",
+        0
+      ],
+      "vae": [
+        "22",
+        2
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "29": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "31": {
+    "inputs": {
+      "from_translate": "auto",
+      "to_translate": "english",
+      "add_proxies": false,
+      "proxies": "",
+      "auth_data": "",
+      "service": "GoogleTranslator [free]",
+      "text": "magic style",
+      "Show proxy": "proxy_hide",
+      "Show authorization": "authorization_hide",
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "DeepTranslatorCLIPTextEncodeNode",
+    "_meta": {
+      "title": "Deep Translator CLIP Text Encode Node"
+    }
+  },
+  "32": {
+    "inputs": {
+      "seed": 906642211188869,
+      "steps": 25,
+      "cfg": 7,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "23",
+        0
+      ],
+      "positive": [
+        "28",
+        0
+      ],
+      "negative": [
+        "28",
+        1
+      ],
+      "latent_image": [
+        "29",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "33": {
+    "inputs": {
+      "samples": [
+        "32",
+        0
+      ],
+      "vae": [
+        "22",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "34": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "33",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "35": {
+    "inputs": {
+      "conditioning_to": [
+        "24",
+        0
+      ],
+      "conditioning_from": [
+        "31",
+        0
+      ]
+    },
+    "class_type": "ConditioningConcat",
+    "_meta": {
+      "title": "Conditioning (Concat)"
+    }
+  },
+  "36": {
+    "inputs": {
+      "text": [
+        "31",
+        1
+      ],
+      "text2": "magic style"
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  }
+}
