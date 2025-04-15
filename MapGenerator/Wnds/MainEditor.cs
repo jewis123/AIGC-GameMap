@@ -202,7 +202,23 @@ namespace MapGenerator.Wnds
                 }
             }
         }
+        
+        // 处理装饰模式退出事件
+        private void RulerPainting_DecoratorModeExited(object? sender, EventArgs e)
+        {
+            // 重置工具栏状态
+            this.toolTab.Enabled = true;
 
+            // 重置装饰列表选中状态
+            foreach (var item in this.decoratorList.Controls)
+            {
+                if (item is IconItemControl ctrl)
+                {
+                    ctrl.SetBackground(false);
+                }
+            }
+        }
+    
         #endregion
 
         // 在UI上显示状态消息的辅助方法
@@ -998,25 +1014,106 @@ namespace MapGenerator.Wnds
 
         private async void RequestDecoratorInPaint()
         {
+            // 获取绘图区域
+            Bitmap canvasImage = rulerPainting.GetCanvasImage();
+            
+            // 获取所有装饰物项
+            var decoratorItems = rulerPainting.GetDecorators();
+            
+            // 确保有有效的装饰物
+            if (canvasImage == null || decoratorItems.Count == 0)
+            {
+                MessageBox.Show("未添加任何装饰物，无法进行融合。", "操作失败",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+
+            // 创建装饰物区域的遮罩
+            Bitmap maskImage = new Bitmap(canvasImage.Width, canvasImage.Height);
+            
+            // 使用Graphics绘制装饰物的遮罩
+            using (Graphics g = Graphics.FromImage(maskImage))
+            {
+                // 先将整个遮罩涂黑（黑色表示不重绘区域）
+                g.Clear(Color.Black);
+                
+                // 设置绘图品质
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                
+                // 遍历所有装饰物，在对应位置绘制白色区域（白色表示重绘区域）
+                foreach (var item in decoratorItems)
+                {
+                    // 计算装饰物在画布上的位置和大小
+                    int x = item.Location.X - item.Size / 2;
+                    int y = item.Location.Y - item.Size / 2;
+                    int size = item.Size;
+                    
+                    // 绘制白色填充区域
+                    using (Brush brush = new SolidBrush(Color.White))
+                    {
+                        g.FillEllipse(brush, x, y, size, size);
+                    }
+                }
+            }
+            
+            // 保存文件路径
+            string canvasPath = AppSettings.GetComfyUIOutputPath($"{this.CurMap.Text}.png");
+            string maskPath = AppSettings.GetMaskDrawOutputPath($"{this.CurMap.Text}_decorator_mask.png");
+
+            // 保存遮罩图像
+            maskImage.Save(maskPath, System.Drawing.Imaging.ImageFormat.Png);
+            
+            // // 更新界面状态
+            // this.btnGen.Enabled = false;
+            // this.btnGen.Text = "处理中...";
+
+            // // 锁定画布，防止用户在重绘过程中继续绘制
+            // rulerPainting.LockCanvas();
+
+            // // 使用异步方法处理生成过程
+            // DecoratorInpaintProcessor inpaintProcessor = new(ref _comfyUIClient);
+            // string resultImagePath = await inpaintProcessor.ProcessInpainting(promptText, canvasPath, maskPath);
+
+            // if (!string.IsNullOrEmpty(resultImagePath))
+            // {
+            //     try
+            //     {
+            //         // 加载生成的图像
+            //         using (Bitmap resultImage = new Bitmap(resultImagePath))
+            //         {
+            //             // 显示在画布上
+            //             rulerPainting.DisplayImageOnCanvas(resultImage);
+
+            //             // 保存结果
+            //             resultImage.Save(canvasPath, ImageFormat.Png);
+
+            //             // 清除装饰模式
+            //             rulerPainting.SetDecoratorMode(false);
+
+            //             MessageBox.Show($"装饰物融合完成！", "操作成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //         }
+            //     }
+            //     catch (Exception ex)
+            //     {
+            //         MessageBox.Show($"显示结果图像时出错: {ex.Message}", "错误",
+            //             MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //     }
+            //     finally
+            //     {
+            //         ResetControl();
+            //     }
+            // }
+            // else
+            // {
+            //     MessageBox.Show("生成图像失败，请重试。", "操作失败",
+            //             MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //     ResetControl();
+            // }
         }
 
         #endregion
 
-        // 处理装饰模式退出事件
-        private void RulerPainting_DecoratorModeExited(object? sender, EventArgs e)
-        {
-            // 重置工具栏状态
-            this.toolTab.Enabled = true;
 
-            // 重置装饰列表选中状态
-            foreach (var item in this.decoratorList.Controls)
-            {
-                if (item is IconItemControl ctrl)
-                {
-                    ctrl.SetBackground(false);
-                }
-            }
-        }
     }
 }

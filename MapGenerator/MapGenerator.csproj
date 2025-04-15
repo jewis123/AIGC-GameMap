@@ -10,13 +10,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="tmp\**" />
+    <EmbeddedResource Remove="tmp\**" />
+    <None Remove="tmp\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ReaLTaiizor" Version="3.7.9.5" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="assets\output\map\comfyui\" />
     <Folder Include="assets\output\map\draw\" />
-    <Folder Include="tmp\drawings\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -59,11 +59,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "G:\\AI\\MapGenerator\\MapGenerator\\MapGenerator.csproj",
+      "projectUniqueName": "G:\\WorkSpace\\MapGen\\MapGenerator\\MapGenerator.csproj",
       "projectName": "MapGenerator",
-      "projectPath": "G:\\AI\\MapGenerator\\MapGenerator\\MapGenerator.csproj",
+      "projectPath": "G:\\WorkSpace\\MapGen\\MapGenerator\\MapGenerator.csproj",
       "packagesPath": "C:\\Users\\Administrator\\.nuget\\packages\\",
-      "outputPath": "G:\\AI\\MapGenerator\\MapGenerator\\obj\\",
+      "outputPath": "G:\\WorkSpace\\MapGen\\MapGenerator\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
