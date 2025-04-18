@@ -36,7 +36,6 @@
             btnFlow = new FlowLayoutPanel();
             newBtn = new Button();
             btnOpen = new Button();
-            projectName = new Label();
             projectList = new ListView();
             tabControl1.SuspendLayout();
             creationModeTab.SuspendLayout();
@@ -91,7 +90,6 @@
             // changeModeTab
             // 
             changeModeTab.Controls.Add(btnFlow);
-            changeModeTab.Controls.Add(projectName);
             changeModeTab.Controls.Add(projectList);
             changeModeTab.Location = new Point(4, 26);
             changeModeTab.Name = "changeModeTab";
@@ -133,27 +131,17 @@
             btnOpen.UseVisualStyleBackColor = true;
             btnOpen.Click += btnOpen_Click;
             // 
-            // projectName
-            // 
-            projectName.AutoSize = true;
-            projectName.BackColor = Color.Transparent;
-            projectName.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
-            projectName.Location = new Point(7, 10);
-            projectName.Name = "projectName";
-            projectName.Size = new Size(56, 17);
-            projectName.TabIndex = 1;
-            projectName.Text = "历史记录";
-            // 
             // projectList
             // 
             projectList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             projectList.HeaderStyle = ColumnHeaderStyle.Nonclickable;
-            projectList.Location = new Point(6, 36);
+            projectList.Location = new Point(6, 6);
+            projectList.MultiSelect = false;
             projectList.Name = "projectList";
-            projectList.Size = new Size(799, 416);
+            projectList.Size = new Size(799, 465);
             projectList.TabIndex = 0;
             projectList.UseCompatibleStateImageBehavior = false;
-            projectList.View = View.List;
+            projectList.View = View.Details;
             // 
             // Enter
             // 
@@ -162,7 +150,8 @@
             ClientSize = new Size(819, 555);
             Controls.Add(tabControl1);
             Name = "Enter";
-            Text = "Form1";
+            Text = "AIGC地图编辑器";
+            Load += Enter_Load;
             tabControl1.ResumeLayout(false);
             creationModeTab.ResumeLayout(false);
             changeModeTab.ResumeLayout(false);
@@ -182,6 +171,5 @@
         private FlowLayoutPanel btnFlow;
         private Button newBtn;
         private Button btnOpen;
-        private Label projectName;
     }
 }

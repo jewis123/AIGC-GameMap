@@ -8,18 +8,7 @@ namespace MapGenerator
         public static string AppRootDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
         // 获取图片资源目录
-        public static string AssetsDirectory
-        {
-            get
-            {
-                // 根据实际情况调整路径，这里假设 assets 文件夹在项目根目录下
-                return Path.Combine(AppRootDirectory, "..", "..", "..","assets");
-            }
-        }
-    
-        public static string AssetRefPath{
-            get {return Path.Combine(AppSettings.AssetsDirectory, "reference");}
-        }
+        public static string AssetsDirectory => Path.Combine(AppRootDirectory, "..", "..", "..", "assets");
 
         // 获取地图输出目录
         public static string OutputDirectory
@@ -36,13 +25,18 @@ namespace MapGenerator
             }
         }
 
-        public static string TempDrawDirectory{
-            get{return Path.Combine(OutputDirectory, "temp", "draw");}
-        }
+        public static string TempDrawDirectory => Path.Combine(OutputDirectory, "temp", "draw");
 
-        public static string AssetTempPath{
-            get{return Path.Combine(OutputDirectory, "temp");}
-        }
+        public static string ArtChangesDirectory => Path.Combine(AssetsDirectory, "art_changes");
+
+        public static string AssetTempPath => Path.Combine(OutputDirectory, "temp");
+
+        public static string WorkflowPath => Path.Combine(AssetsDirectory, "workflow");
+        public static string StyleTemplatePath => Path.Combine(AssetsDirectory, "style_template");
+
+        public static string ProjectRawImgPath => Path.Combine(AssetsDirectory, "project_raw");
+
+        public static string RefImagePath => Path.Combine(AssetsDirectory, "reference/ref");
 
         // 获取特定图片的完整路径
         public static string GetImagePath(string fileName)

@@ -4,10 +4,10 @@
     <Compile Update="Components\HintRichText.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Update="Components\IconItemControl.cs">
+    <Compile Update="Components\IconItemControl_H.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Update="Components\RefImageItem.cs">
+    <Compile Update="Components\CheckableImageItem.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Components\RulerPainting.cs">
@@ -19,7 +19,13 @@
     <Compile Update="Wnds\Enter.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Wnds\InputStringDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Wnds\MainEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Wnds\StyleChangeWnd.cs">
       <SubType>Form</SubType>
     </Compile>
   </ItemGroup>

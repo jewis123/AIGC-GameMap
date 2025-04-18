@@ -88,5 +88,14 @@
             width = validWidth;
             height = validHeight;
         }
+
+        internal void SetSize(int width, int height)
+        {
+            validHeight = height;
+            validWidth = width;
+
+            this.width.Text = width.ToString();
+            this.height.Text = height.ToString();
+        }
     }
 }

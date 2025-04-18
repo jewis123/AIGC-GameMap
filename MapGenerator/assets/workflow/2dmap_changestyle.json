@@ -19,7 +19,7 @@
     "inputs": {
       "switch": "On",
       "base_positive": [
-        "74",
+        "169",
         0
       ],
       "base_negative": [
@@ -38,7 +38,7 @@
   },
   "30": {
     "inputs": {
-      "image": "bossditu_gebi_x.jpeg"
+      "image": "blxy_bxt_1.png"
     },
     "class_type": "LoadImage",
     "_meta": {
@@ -156,8 +156,8 @@
   "41": {
     "inputs": {
       "add_noise": "enable",
-      "noise_seed": 552970028924322,
-      "steps": 24,
+      "noise_seed": 1043740675353401,
+      "steps": 28,
       "cfg": 2,
       "sampler_name": "dpmpp_3m_sde",
       "scheduler": "karras",
@@ -165,7 +165,7 @@
       "end_at_step": 10000,
       "return_with_leftover_noise": "disable",
       "model": [
-        "49",
+        "160",
         0
       ],
       "positive": [
@@ -190,7 +190,7 @@
     "inputs": {
       "width": 512,
       "height": 512,
-      "batch_size": 4
+      "batch_size": 2
     },
     "class_type": "EmptyLatentImage",
     "_meta": {
@@ -205,17 +205,17 @@
       "weight": 1,
       "weight_faceidv2": 1,
       "weight_type": "composition",
-      "combine_embeds": "concat",
+      "combine_embeds": "subtract",
       "start_at": 0,
       "end_at": 1,
-      "embeds_scaling": "K+V",
+      "embeds_scaling": "V only",
       "cache_mode": "all",
       "use_tiled": false,
       "use_batch": false,
       "sharpening": 0,
       "layer_weights": "",
       "model": [
-        "156",
+        "31",
         0
       ],
       "image": [
@@ -243,9 +243,9 @@
   },
   "74": {
     "inputs": {
-      "text": "2D RPG scene map, isometric fixed equal - height perspective.",
+      "text": "2D scene map, isometric fixed equal - height perspective.",
       "clip": [
-        "155",
+        "31",
         1
       ]
     },
@@ -258,7 +258,7 @@
     "inputs": {
       "text": "blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.",
       "clip": [
-        "155",
+        "31",
         1
       ]
     },
@@ -271,7 +271,7 @@
     "inputs": {
       "interpolation": "LANCZOS",
       "crop_position": "top",
-      "sharpening": 0.2,
+      "sharpening": 0.4,
       "image": [
         "30",
         0
@@ -301,22 +301,13 @@
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "17",
+        "185",
         0
       ]
     },
     "class_type": "SaveImage",
     "_meta": {
       "title": "Save Image"
-    }
-  },
-  "152": {
-    "inputs": {
-      "image": "clipspace/clipspace-mask-1113982.100000009.png [input]"
-    },
-    "class_type": "LoadImage",
-    "_meta": {
-      "title": "Load Image"
     }
   },
   "154": {
@@ -328,40 +319,169 @@
       "title": "Load VAE"
     }
   },
-  "155": {
+  "160": {
     "inputs": {
-      "switch": "On",
-      "lora_name": "1-5\\Light and Shadow.safetensors",
-      "strength_model": 0.8,
-      "strength_clip": 0.8,
+      "preset": "VIT-G (medium strength)",
+      "lora_strength": 0.6,
+      "provider": "CUDA",
+      "weight": 1.5,
+      "weight_faceidv2": 1,
+      "weight_type": "strong style transfer",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "K+V",
+      "cache_mode": "all",
+      "use_tiled": false,
+      "use_batch": false,
+      "sharpening": 0,
+      "layer_weights": "",
       "model": [
-        "31",
+        "49",
         0
       ],
+      "image": [
+        "164",
+        0
+      ],
+      "image_negative": [
+        "162",
+        0
+      ],
+      "clip_vision": [
+        "163",
+        0
+      ]
+    },
+    "class_type": "easy ipadapterApplyADV",
+    "_meta": {
+      "title": "Easy Apply IPAdapter (Advanced)"
+    }
+  },
+  "162": {
+    "inputs": {
+      "type": "gaussian",
+      "strength": 1,
+      "blur": 4,
+      "image_optional": [
+        "165",
+        0
+      ]
+    },
+    "class_type": "IPAdapterNoise",
+    "_meta": {
+      "title": "IPAdapter Noise"
+    }
+  },
+  "163": {
+    "inputs": {
+      "clip_name": "ipadapter_clipvision\\CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "164": {
+    "inputs": {
+      "interpolation": "LANCZOS",
+      "crop_position": "top",
+      "sharpening": 0,
+      "image": [
+        "165",
+        0
+      ]
+    },
+    "class_type": "PrepImageForClipVision",
+    "_meta": {
+      "title": "Prep Image For ClipVision"
+    }
+  },
+  "165": {
+    "inputs": {
+      "image": "岩浆.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "168": {
+    "inputs": {
+      "from_translate": "auto",
+      "to_translate": "english",
+      "add_proxies": false,
+      "proxies": "",
+      "auth_data": "",
+      "service": "GoogleTranslator",
+      "text": "熔岩，地狱",
+      "Show proxy": "proxy_hide",
+      "Show authorization": "authorization_hide",
       "clip": [
         "31",
         1
       ]
     },
-    "class_type": "CR Load LoRA",
+    "class_type": "DeepTranslatorCLIPTextEncodeNode",
     "_meta": {
-      "title": "💊 CR Load LoRA"
+      "title": "Deep Translator CLIP Text Encode Node"
     }
   },
-  "156": {
+  "169": {
     "inputs": {
-      "model": [
-        "155",
+      "conditioning_to": [
+        "74",
         0
       ],
-      "mask": [
-        "152",
-        1
+      "conditioning_from": [
+        "168",
+        0
       ]
     },
-    "class_type": "RegionalCFG //Inspire",
+    "class_type": "ConditioningConcat",
     "_meta": {
-      "title": "Regional CFG (Inspire)"
+      "title": "Conditioning (Concat)"
+    }
+  },
+  "183": {
+    "inputs": {
+      "model_name": "RealESRGAN_x4.pth"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": {
+      "title": "Load Upscale Model"
+    }
+  },
+  "184": {
+    "inputs": {
+      "upscale_model": [
+        "183",
+        0
+      ],
+      "image": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": {
+      "title": "Upscale Image (using Model)"
+    }
+  },
+  "185": {
+    "inputs": {
+      "upscale_method": "bilinear",
+      "width": 2048,
+      "height": 2560,
+      "crop": "disabled",
+      "image": [
+        "184",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Upscale Image"
     }
   }
 }

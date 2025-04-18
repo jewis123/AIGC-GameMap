@@ -1,3 +1,4 @@
+using System.Collections;
 using MapGenerator.Wnds;
 
 namespace MapGenerator
@@ -5,28 +6,68 @@ namespace MapGenerator
     public partial class Enter : Form
     {
 
-        private int selectMapxIdx;
-        private bool creationListInited = false;
-
         public Enter()
         {
             InitializeComponent();
 
-            this.tabControl1.SelectedIndexChanged += (s, e) =>
-            {
-                if (tabControl1.SelectedIndex == 0 && creationListInited == false)
-                {
-                    InitializeCreationMapListView();
-
-                    creationListInited = true;
-                }
-                else
-                {
-
-                }
-            };
+            this.StartPosition = FormStartPosition.CenterScreen;
+            // 添加窗体关闭事件
+            this.FormClosing += Enter_FormClosing;
         }
 
+        // 添加窗体关闭事件处理
+        private void Enter_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing || e.CloseReason == CloseReason.ApplicationExitCall)
+            {
+                // 清理临时文件
+                CleanupTempFiles();
+            }
+        }
+
+        // 清理临时文件的静态方法
+        public static void CleanupTempFiles()
+        {
+            try
+            {
+                string tempPath = AppSettings.AssetTempPath;
+                
+                if (Directory.Exists(tempPath))
+                {
+                    // 获取目录下的所有文件
+                    string[] files = Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories);
+                    
+                    foreach (string file in files)
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            // 忽略单个文件删除失败的错误，继续删除其他文件
+                            Console.WriteLine($"无法删除文件 {file}: {ex.Message}");
+                        }
+                    }
+                    
+                    // 显示成功消息
+                    Console.WriteLine($"已清理 {files.Length} 个临时文件");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"清理临时文件时出错: {ex.Message}");
+            }
+        }
+
+        private void Enter_Load(object sender, EventArgs e)
+        {
+            InitializeCreationMapListView();
+            InitializeStyleChangeRecordListView();
+        }
+
+        #region Createion Mode
+        private int selectMapxIdx;
         private void InitializeCreationMapListView()
         {
             listView.View = View.LargeIcon;
@@ -62,22 +103,100 @@ namespace MapGenerator
             selectMapxIdx = e.ItemIndex;
         }
 
+        /// <summary>
+        /// 创作模式新建
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnCreate_Click(object sender, EventArgs e)
         {
             MainEditor win = new MainEditor();
             win.SetMapIndex(selectMapxIdx);
+            win.FormClosed += (s, args) =>
+            {
+                this.Show();
+            };
+
             win.Show();
             this.Hide();
         }
+        #endregion
 
+        #region Style Mode
+        private int selectRecordIdx = -1;
+
+        private void InitializeStyleChangeRecordListView()
+        {
+            var records = File.ReadAllLines(Path.Combine(AppSettings.ArtChangesDirectory, "records.txt"));
+            projectList.Columns.Add("历史记录", projectList.ClientSize.Width); // 列名和宽度
+            projectList.FullRowSelect = true;
+            foreach (var record in records)
+            {
+                projectList.Items.Add(record);
+            }
+
+            projectList.ItemSelectionChanged += ProjectList_SelectedIndexChanged;
+        }
+
+        private void ProjectList_SelectedIndexChanged(object? sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            selectRecordIdx = e.ItemIndex;
+        }
+
+        /// <summary>
+        /// 换皮模式新建
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void newBtn_Click(object sender, EventArgs e)
         {
+            InputStringDialog dialog = new InputStringDialog();
+            // 显示对话框
+            Application.EnableVisualStyles();
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                //写入records.txt
+                File.AppendAllText(Path.Combine(AppSettings.ArtChangesDirectory, "records.txt"), dialog.RecordName + "\r\n");
+                Directory.CreateDirectory(Path.Combine(AppSettings.ArtChangesDirectory, dialog.RecordName));
+                InitializeStyleChangeRecordListView();
 
+                StyleChangeWnd win = new StyleChangeWnd();
+                win.RecordDirName = dialog.RecordName;
+                win.FormClosed += (s, args) =>
+                {
+                    this.Show();
+                };
+
+                win.Show();
+                this.Hide();
+            }
         }
 
+        /// <summary>
+        /// 换皮模式打开历史记录
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void btnOpen_Click(object sender, EventArgs e)
         {
+            if (selectRecordIdx == -1)
+            {
+                MessageBox.Show(this, "先选择记录");
+                return;
+            }
 
+            StyleChangeWnd win = new StyleChangeWnd();
+            win.RecordDirName = projectList.Items[selectRecordIdx].Text;
+            win.FormClosed += (s, args) =>
+            {
+                this.Show();
+            };
+
+            win.Show();
+            this.Hide();
         }
+        #endregion
+
+
     }
 }

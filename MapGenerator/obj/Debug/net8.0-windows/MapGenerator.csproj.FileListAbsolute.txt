@@ -31,9 +31,7 @@ G:\WorkSpace\MapGen\MapGenerator\bin\Debug\net8.0-windows\MapGenerator.dll
 G:\WorkSpace\MapGen\MapGenerator\bin\Debug\net8.0-windows\MapGenerator.pdb
 G:\WorkSpace\MapGen\MapGenerator\bin\Debug\net8.0-windows\ReaLTaiizor.dll
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.csproj.AssemblyReference.cache
-G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.IconItemControl.resources
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.Win32.resources
-G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.RefImageItem.resources
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.RulerPainting.resources
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.SizeSetting.resources
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Properties.Resources.resources
@@ -51,3 +49,8 @@ G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\refint\MapGenerator.dl
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.pdb
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.genruntimeconfig.cache
 G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\ref\MapGenerator.dll
+G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Wnds.StyleChangeWnd.resources
+G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.IconItemControl_H.resources
+G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.IconItemControl_V.resources
+G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Wnds.InputStringDialog.resources
+G:\WorkSpace\MapGen\MapGenerator\obj\Debug\net8.0-windows\MapGenerator.Components.CheckableImageItem.resources

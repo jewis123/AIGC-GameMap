@@ -23,8 +23,8 @@ namespace MapGenerator.Wnds
 
         public HintRichTextBox()
         {
-            this.Enter += HintRichTextBox_Enter;
-            this.Leave += HintRichTextBox_Leave;
+            this.GotFocus += HintRichTextBox_Enter;
+            this.LostFocus += HintRichTextBox_Leave;
         }
 
         private void HintRichTextBox_Enter(object sender, EventArgs e)
