@@ -18,14 +18,15 @@ namespace MapGenerator.Request.ComfyUI
         /// <param name="prompt">用于生成的提示词</param>
         /// <param name="imagePath">用户参考的图片路径</param>
         /// <returns>生成的图片路径，如果处理失败则返回null</returns>
-        public async Task<string?> Process(string prompt, string imagePath, int[] pixcels)
+        public async Task<string?> Process(string prompt, string imagePath, IProgress<int> progress)
         {
             try
             {
                 // 先取消当前正在执行的任务，避免排队
                 await _comfyClient.CancelCurrentExecution();
 
-                // 上传参考的图片
+                // 上传原图片
+                progress.Report(10);
                 string uploadedImageName = string.Empty;
                 if (!string.IsNullOrEmpty(imagePath) && File.Exists(imagePath))
                 {
@@ -38,7 +39,8 @@ namespace MapGenerator.Request.ComfyUI
                 }
 
                 // 准备工作流
-                var modifiedWorkflow = await PrepareWorkflow(prompt, uploadedImageName, pixcels);
+                progress.Report(30);
+                var modifiedWorkflow = await PrepareWorkflow(prompt, uploadedImageName);
                 if (modifiedWorkflow == null)
                 {
                     return null;
@@ -51,6 +53,7 @@ namespace MapGenerator.Request.ComfyUI
                 };
 
                 // 发送工作流到ComfyUI并获取promptId
+                progress.Report(40);
                 string? promptId = await _comfyClient.ExecuteWorkflow(requestData);
                 if (string.IsNullOrEmpty(promptId))
                 {
@@ -59,7 +62,7 @@ namespace MapGenerator.Request.ComfyUI
                 }
 
                 // 轮询等待结果
-                string resultImagePath = await _comfyClient.PollForResult(promptId, "229", pixcels[0] * pixcels[1] / (512 * 512)); // 229是SaveImage节点ID
+                string resultImagePath = await _comfyClient.PollForResult(promptId, "229"); // 229是SaveImage节点ID
                 
                 if (string.IsNullOrEmpty(resultImagePath))
                 {
@@ -79,7 +82,7 @@ namespace MapGenerator.Request.ComfyUI
         /// <summary>
         /// 准备工作流，根据绘制的图片和提示词更新工作流
         /// </summary>
-        private async Task<Dictionary<string, object>?> PrepareWorkflow(string prompt, string uploadedImageName, int[] pixcels)
+        private async Task<Dictionary<string, object>?> PrepareWorkflow(string prompt, string uploadedImageName)
         {
             try
             {
@@ -132,39 +135,20 @@ namespace MapGenerator.Request.ComfyUI
                     }
                 }
 
-                // 修改节点 205（LantentImage）使用我们设置的像素值
-                    var node205 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    workflow["205"].GetRawText());
+                // 修改节点 199使用我们的提示词
+                var node199 = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    workflow["199"].GetRawText());
                     
-                    if (node205 != null && node205.ContainsKey("inputs"))
-                    {
-                        var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                            ((JsonElement)node205["inputs"]).GetRawText());
-                            
-                        if (inputs != null)
-                        {
-                            inputs["width"] = pixcels[0];
-                            inputs["height"] = pixcels[1];
-                            node205["inputs"] = inputs;
-                            modifiedWorkflow["205"] = node205;
-                        }
-                    }
-                
-
-                // 修改节点 227（DeepTranslatorCLIPTextEncode）使用我们的提示词
-                var node227 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    workflow["227"].GetRawText());
-                    
-                if (node227 != null && node227.ContainsKey("inputs"))
+                if (node199 != null && node199.ContainsKey("inputs"))
                 {
                     var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                        ((JsonElement)node227["inputs"]).GetRawText());
+                        ((JsonElement)node199["inputs"]).GetRawText());
                         
                     if (inputs != null)
                     {
                         inputs["text"] = prompt;
-                        node227["inputs"] = inputs;
-                        modifiedWorkflow["227"] = node227;
+                        node199["inputs"] = inputs;
+                        modifiedWorkflow["199"] = node199;
                     }
                 }
 

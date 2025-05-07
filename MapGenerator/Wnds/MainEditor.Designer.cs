@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            MainViewTab = new TabControl();
             curMapContextMenu = new ContextMenuStrip(components);
             reloadDrawingMenuItem = new ToolStripMenuItem();
             saveMapMenuItem = new ToolStripMenuItem();
@@ -38,9 +37,6 @@
             toolStripSeparator1 = new ToolStripSeparator();
             renameMapMenuItem = new ToolStripMenuItem();
             closeMapMenuItem = new ToolStripMenuItem();
-            CurMap = new TabPage();
-            PaintingPanel = new Panel();
-            rulerPainting = new Components.RulerPainting();
             FolderStripMenuItem = new ToolStripMenuItem();
             loadImageStripMenuItem = new ToolStripMenuItem();
             HelpStripMenuItem = new ToolStripMenuItem();
@@ -58,18 +54,17 @@
             paintSize = new Components.SizeSetting();
             genSize = new Components.SizeSetting();
             RightSideLayOut = new TableLayoutPanel();
-            StyleList = new TableLayoutPanel();
-            flowLayoutPanel1 = new FlowLayoutPanel();
-            styleLable = new Label();
+            PromptBox = new HintRichTextBox();
             mapStyle = new TabControl();
             refTab = new TabPage();
-            templateRefTab = new TabPage();
-            mapRefLayout = new FlowLayoutPanel();
-            PromptBox = new HintRichTextBox();
-            MainViewTab.SuspendLayout();
+            refTabLayout = new FlowLayoutPanel();
+            loraTab = new TabPage();
+            modelLayout = new FlowLayoutPanel();
+            historyTab = new TabPage();
+            historyLayout = new FlowLayoutPanel();
+            MainViewTab = new TabControl();
+            zoomBar = new Components.ZoomBar();
             curMapContextMenu.SuspendLayout();
-            CurMap.SuspendLayout();
-            PaintingPanel.SuspendLayout();
             menuStrip.SuspendLayout();
             ToolPanel.SuspendLayout();
             toolTab.SuspendLayout();
@@ -78,21 +73,11 @@
             Buttons.SuspendLayout();
             flowLayoutPanel2.SuspendLayout();
             RightSideLayOut.SuspendLayout();
-            StyleList.SuspendLayout();
-            flowLayoutPanel1.SuspendLayout();
             mapStyle.SuspendLayout();
+            refTab.SuspendLayout();
+            loraTab.SuspendLayout();
+            historyTab.SuspendLayout();
             SuspendLayout();
-            // 
-            // MainViewTab
-            // 
-            MainViewTab.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            MainViewTab.ContextMenuStrip = curMapContextMenu;
-            MainViewTab.Controls.Add(CurMap);
-            MainViewTab.Location = new Point(0, 25);
-            MainViewTab.Name = "MainViewTab";
-            MainViewTab.SelectedIndex = 0;
-            MainViewTab.Size = new Size(590, 616);
-            MainViewTab.TabIndex = 1;
             // 
             // curMapContextMenu
             // 
@@ -147,36 +132,6 @@
             closeMapMenuItem.Text = "关闭地图";
             closeMapMenuItem.Click += closeMapMenuItem_Click;
             // 
-            // CurMap
-            // 
-            CurMap.Controls.Add(PaintingPanel);
-            CurMap.Location = new Point(4, 26);
-            CurMap.Name = "CurMap";
-            CurMap.Padding = new Padding(3);
-            CurMap.Size = new Size(582, 586);
-            CurMap.TabIndex = 0;
-            CurMap.Text = "tab1";
-            CurMap.UseVisualStyleBackColor = true;
-            // 
-            // PaintingPanel
-            // 
-            PaintingPanel.BackColor = Color.WhiteSmoke;
-            PaintingPanel.Controls.Add(rulerPainting);
-            PaintingPanel.Dock = DockStyle.Fill;
-            PaintingPanel.Location = new Point(3, 3);
-            PaintingPanel.Name = "PaintingPanel";
-            PaintingPanel.Size = new Size(576, 580);
-            PaintingPanel.TabIndex = 1;
-            // 
-            // rulerPainting
-            // 
-            rulerPainting.BackColor = Color.LightGray;
-            rulerPainting.Dock = DockStyle.Fill;
-            rulerPainting.Location = new Point(0, 0);
-            rulerPainting.Name = "rulerPainting";
-            rulerPainting.Size = new Size(576, 580);
-            rulerPainting.TabIndex = 0;
-            // 
             // FolderStripMenuItem
             // 
             FolderStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { loadImageStripMenuItem });
@@ -189,6 +144,7 @@
             loadImageStripMenuItem.Name = "loadImageStripMenuItem";
             loadImageStripMenuItem.Size = new Size(124, 22);
             loadImageStripMenuItem.Text = "加载图片";
+            loadImageStripMenuItem.Click += loadImageStripMenuItem_Click;
             // 
             // HelpStripMenuItem
             // 
@@ -295,6 +251,7 @@
             btnGen.TabIndex = 0;
             btnGen.Text = "生成";
             btnGen.UseVisualStyleBackColor = true;
+            btnGen.Click += btnGen_Click;
             // 
             // btnStop
             // 
@@ -304,6 +261,7 @@
             btnStop.TabIndex = 3;
             btnStop.Text = "中止";
             btnStop.UseVisualStyleBackColor = true;
+            btnStop.Click += btnStop_Click;
             // 
             // paintSize
             // 
@@ -311,6 +269,7 @@
             paintSize.Name = "paintSize";
             paintSize.Size = new Size(286, 29);
             paintSize.TabIndex = 2;
+            paintSize.Load += paintSize_Load;
             // 
             // genSize
             // 
@@ -318,110 +277,127 @@
             genSize.Name = "genSize";
             genSize.Size = new Size(286, 29);
             genSize.TabIndex = 1;
+            genSize.Load += genSize_Load;
             // 
             // RightSideLayOut
             // 
             RightSideLayOut.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
             RightSideLayOut.ColumnCount = 1;
             RightSideLayOut.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            RightSideLayOut.Controls.Add(StyleList, 0, 0);
             RightSideLayOut.Controls.Add(PromptBox, 0, 1);
-            RightSideLayOut.Location = new Point(590, 54);
+            RightSideLayOut.Controls.Add(mapStyle, 0, 0);
+            RightSideLayOut.Location = new Point(590, 28);
             RightSideLayOut.Name = "RightSideLayOut";
-            RightSideLayOut.RowCount = 2;
+            RightSideLayOut.RowCount = 3;
             RightSideLayOut.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             RightSideLayOut.RowStyles.Add(new RowStyle(SizeType.Absolute, 100F));
-            RightSideLayOut.Size = new Size(295, 563);
+            RightSideLayOut.RowStyles.Add(new RowStyle(SizeType.Absolute, 20F));
+            RightSideLayOut.Size = new Size(295, 589);
             RightSideLayOut.TabIndex = 5;
-            // 
-            // StyleList
-            // 
-            StyleList.ColumnCount = 1;
-            StyleList.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-            StyleList.Controls.Add(flowLayoutPanel1, 0, 0);
-            StyleList.Controls.Add(mapRefLayout, 0, 1);
-            StyleList.Dock = DockStyle.Fill;
-            StyleList.Location = new Point(3, 3);
-            StyleList.Name = "StyleList";
-            StyleList.RowCount = 2;
-            StyleList.RowStyles.Add(new RowStyle(SizeType.Absolute, 40F));
-            StyleList.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
-            StyleList.Size = new Size(289, 457);
-            StyleList.TabIndex = 2;
-            // 
-            // flowLayoutPanel1
-            // 
-            flowLayoutPanel1.Controls.Add(styleLable);
-            flowLayoutPanel1.Controls.Add(mapStyle);
-            flowLayoutPanel1.Location = new Point(3, 3);
-            flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(274, 27);
-            flowLayoutPanel1.TabIndex = 0;
-            // 
-            // styleLable
-            // 
-            styleLable.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            styleLable.AutoSize = true;
-            styleLable.Location = new Point(3, 0);
-            styleLable.Name = "styleLable";
-            styleLable.Size = new Size(56, 30);
-            styleLable.TabIndex = 0;
-            styleLable.Text = "地图风格";
-            styleLable.TextAlign = ContentAlignment.MiddleCenter;
-            // 
-            // mapStyle
-            // 
-            mapStyle.Controls.Add(refTab);
-            mapStyle.Controls.Add(templateRefTab);
-            mapStyle.Location = new Point(65, 3);
-            mapStyle.Name = "mapStyle";
-            mapStyle.SelectedIndex = 0;
-            mapStyle.Size = new Size(191, 24);
-            mapStyle.TabIndex = 1;
-            // 
-            // refTab
-            // 
-            refTab.Location = new Point(4, 26);
-            refTab.Name = "refTab";
-            refTab.Size = new Size(183, 0);
-            refTab.TabIndex = 1;
-            refTab.Text = "自定义";
-            refTab.UseVisualStyleBackColor = true;
-            // 
-            // templateRefTab
-            // 
-            templateRefTab.Location = new Point(4, 26);
-            templateRefTab.Name = "templateRefTab";
-            templateRefTab.Size = new Size(183, 0);
-            templateRefTab.TabIndex = 2;
-            templateRefTab.Text = "原图";
-            templateRefTab.UseVisualStyleBackColor = true;
-            // 
-            // mapRefLayout
-            // 
-            mapRefLayout.Dock = DockStyle.Fill;
-            mapRefLayout.Location = new Point(3, 43);
-            mapRefLayout.Name = "mapRefLayout";
-            mapRefLayout.Padding = new Padding(0, 2, 2, 0);
-            mapRefLayout.Size = new Size(283, 411);
-            mapRefLayout.TabIndex = 1;
             // 
             // PromptBox
             // 
             PromptBox.Dock = DockStyle.Fill;
             PromptBox.ForeColor = SystemColors.GrayText;
             PromptBox.Hint = null;
-            PromptBox.Location = new Point(3, 466);
+            PromptBox.Location = new Point(3, 472);
             PromptBox.Name = "PromptBox";
             PromptBox.Size = new Size(289, 94);
             PromptBox.TabIndex = 3;
             PromptBox.Text = "";
+            // 
+            // mapStyle
+            // 
+            mapStyle.Controls.Add(refTab);
+            mapStyle.Controls.Add(loraTab);
+            mapStyle.Controls.Add(historyTab);
+            mapStyle.Location = new Point(3, 3);
+            mapStyle.Name = "mapStyle";
+            mapStyle.SelectedIndex = 0;
+            mapStyle.Size = new Size(289, 463);
+            mapStyle.TabIndex = 1;
+            // 
+            // refTab
+            // 
+            refTab.Controls.Add(refTabLayout);
+            refTab.Location = new Point(4, 26);
+            refTab.Name = "refTab";
+            refTab.Size = new Size(281, 433);
+            refTab.TabIndex = 1;
+            refTab.Text = "特征参考";
+            refTab.UseVisualStyleBackColor = true;
+            // 
+            // refTabLayout
+            // 
+            refTabLayout.Dock = DockStyle.Fill;
+            refTabLayout.Location = new Point(0, 0);
+            refTabLayout.Name = "refTabLayout";
+            refTabLayout.Size = new Size(281, 433);
+            refTabLayout.TabIndex = 0;
+            // 
+            // loraTab
+            // 
+            loraTab.Controls.Add(modelLayout);
+            loraTab.Location = new Point(4, 26);
+            loraTab.Name = "loraTab";
+            loraTab.Padding = new Padding(3);
+            loraTab.Size = new Size(281, 433);
+            loraTab.TabIndex = 3;
+            loraTab.Text = "绘画模型";
+            loraTab.UseVisualStyleBackColor = true;
+            // 
+            // modelLayout
+            // 
+            modelLayout.Dock = DockStyle.Fill;
+            modelLayout.Location = new Point(3, 3);
+            modelLayout.Name = "modelLayout";
+            modelLayout.Size = new Size(275, 427);
+            modelLayout.TabIndex = 0;
+            // 
+            // historyTab
+            // 
+            historyTab.Controls.Add(historyLayout);
+            historyTab.Location = new Point(4, 26);
+            historyTab.Name = "historyTab";
+            historyTab.Size = new Size(281, 433);
+            historyTab.TabIndex = 2;
+            historyTab.Text = "记录";
+            historyTab.UseVisualStyleBackColor = true;
+            // 
+            // historyLayout
+            // 
+            historyLayout.Dock = DockStyle.Fill;
+            historyLayout.Location = new Point(0, 0);
+            historyLayout.Name = "historyLayout";
+            historyLayout.Size = new Size(281, 433);
+            historyLayout.TabIndex = 0;
+            // 
+            // MainViewTab
+            // 
+            MainViewTab.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            MainViewTab.ContextMenuStrip = curMapContextMenu;
+            MainViewTab.Location = new Point(0, 28);
+            MainViewTab.Name = "MainViewTab";
+            MainViewTab.SelectedIndex = 0;
+            MainViewTab.Size = new Size(590, 563);
+            MainViewTab.TabIndex = 1;
+            // 
+            // zoomBar
+            // 
+            zoomBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            zoomBar.BackColor = SystemColors.Control;
+            zoomBar.Location = new Point(328, 597);
+            zoomBar.MinimumSize = new Size(0, 29);
+            zoomBar.Name = "zoomBar";
+            zoomBar.Size = new Size(262, 29);
+            zoomBar.TabIndex = 6;
             // 
             // MainEditor
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(889, 776);
+            Controls.Add(zoomBar);
             Controls.Add(RightSideLayOut);
             Controls.Add(Buttons);
             Controls.Add(ToolPanel);
@@ -429,12 +405,9 @@
             Controls.Add(menuStrip);
             MainMenuStrip = menuStrip;
             Name = "MainEditor";
-            Text = "MainEditor";
+            Text = "创作模式";
             Load += MainEditor_Load;
-            MainViewTab.ResumeLayout(false);
             curMapContextMenu.ResumeLayout(false);
-            CurMap.ResumeLayout(false);
-            PaintingPanel.ResumeLayout(false);
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             ToolPanel.ResumeLayout(false);
@@ -444,31 +417,25 @@
             Buttons.ResumeLayout(false);
             flowLayoutPanel2.ResumeLayout(false);
             RightSideLayOut.ResumeLayout(false);
-            StyleList.ResumeLayout(false);
-            flowLayoutPanel1.ResumeLayout(false);
-            flowLayoutPanel1.PerformLayout();
             mapStyle.ResumeLayout(false);
+            refTab.ResumeLayout(false);
+            loraTab.ResumeLayout(false);
+            historyTab.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
-        private TabControl MainViewTab;
-        private TabPage CurMap;
         private TabPage brushPanel;
         private TableLayoutPanel MainViewLayout;
-        private Panel PaintingPanel;
         private Panel ToolPanel;
         private Panel Buttons;
         private TableLayoutPanel RightSideLayOut;
         private TabControl toolTab;
         private TabPage decoratorPanel;
-        private TableLayoutPanel StyleList;
-        private FlowLayoutPanel flowLayoutPanel1;
-        private Label styleLable;
         private TabControl mapStyle;
         private TabPage refTab;
-        private TabPage templateRefTab;
+        private TabPage historyTab;
         private Button btnGen;
         private ToolStripMenuItem FolderStripMenuItem;
         private ToolStripMenuItem HelpStripMenuItem;
@@ -483,13 +450,17 @@
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem closeMapMenuItem;
         private ToolStripMenuItem renameMapMenuItem;
-        private FlowLayoutPanel mapRefLayout;
         private HintRichTextBox PromptBox;
         private Components.SizeSetting paintSize;
         private Components.SizeSetting genSize;
-        private Components.RulerPainting rulerPainting;
         private FlowLayoutPanel flowLayoutPanel2;
         private Button btnStop;
         private ToolStripMenuItem loadImageStripMenuItem;
+        private TabControl MainViewTab;
+        private TabPage loraTab;
+        private FlowLayoutPanel refTabLayout;
+        private FlowLayoutPanel modelLayout;
+        private FlowLayoutPanel historyLayout;
+        private Components.ZoomBar zoomBar;
     }
 }

@@ -10,10 +10,19 @@
     <Compile Update="Components\CheckableImageItem.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Update="Components\PaintCanvas.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Components\ProgressForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="Components\RulerPainting.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Components\SizeSetting.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Components\ZoomBar.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="Wnds\Enter.cs">

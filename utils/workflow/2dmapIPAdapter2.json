@@ -1,0 +1,355 @@
+{
+  "194": {
+    "inputs": {
+      "image": "item.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "195": {
+    "inputs": {
+      "ckpt_name": "xl\\Albedobase_SDXLHyper_v1.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "199": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "209",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "201": {
+    "inputs": {
+      "text": "blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "209",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "202": {
+    "inputs": {
+      "conditioning_1": [
+        "199",
+        0
+      ],
+      "conditioning_2": [
+        "246",
+        0
+      ]
+    },
+    "class_type": "ConditioningCombine",
+    "_meta": {
+      "title": "Conditioning (Combine)"
+    }
+  },
+  "204": {
+    "inputs": {
+      "seed": 177908236677323,
+      "steps": 25,
+      "cfg": 7,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "256",
+        0
+      ],
+      "positive": [
+        "257",
+        0
+      ],
+      "negative": [
+        "257",
+        1
+      ],
+      "latent_image": [
+        "249",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "208": {
+    "inputs": {
+      "clip_name": "CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "209": {
+    "inputs": {
+      "lora_name": "xl\\PaperCut_Tr-PaperCutout style.safetensors",
+      "strength_model": 1.2000000000000002,
+      "strength_clip": 1,
+      "model": [
+        "195",
+        0
+      ],
+      "clip": [
+        "195",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "212": {
+    "inputs": {
+      "samples": [
+        "204",
+        0
+      ],
+      "vae": [
+        "195",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "229": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "246": {
+    "inputs": {
+      "text": "",
+      "seed": 420026263802139,
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "209",
+        1
+      ]
+    },
+    "class_type": "SixGodPrompts",
+    "_meta": {
+      "title": "六神clip文本编码(自动翻译)"
+    }
+  },
+  "248": {
+    "inputs": {
+      "interpolation": "LANCZOS",
+      "crop_position": "top",
+      "sharpening": 0.20000000000000004,
+      "image": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "PrepImageForClipVision",
+    "_meta": {
+      "title": "Prep Image For ClipVision"
+    }
+  },
+  "249": {
+    "inputs": {
+      "pixels": [
+        "251",
+        0
+      ],
+      "vae": [
+        "195",
+        2
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "251": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "upscale_method": "nearest-exact",
+      "keep_proportion": true,
+      "divisible_by": 2,
+      "crop": "disabled",
+      "image": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "Resize Image"
+    }
+  },
+  "252": {
+    "inputs": {
+      "width": [
+        "253",
+        0
+      ],
+      "height": [
+        "253",
+        1
+      ],
+      "upscale_method": "nearest-exact",
+      "keep_proportion": true,
+      "divisible_by": 2,
+      "crop": "disabled",
+      "image": [
+        "212",
+        0
+      ]
+    },
+    "class_type": "ImageResizeKJ",
+    "_meta": {
+      "title": "Resize Image"
+    }
+  },
+  "253": {
+    "inputs": {
+      "image": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "256": {
+    "inputs": {
+      "preset": "VIT-G (medium strength)",
+      "lora_strength": 0.6,
+      "provider": "CUDA",
+      "weight": 1,
+      "weight_faceidv2": 1,
+      "weight_type": "composition",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "K+V",
+      "cache_mode": "all",
+      "use_tiled": false,
+      "use_batch": false,
+      "sharpening": 0,
+      "layer_weights": "",
+      "model": [
+        "209",
+        0
+      ],
+      "image": [
+        "248",
+        0
+      ],
+      "clip_vision": [
+        "208",
+        0
+      ]
+    },
+    "class_type": "easy ipadapterApplyADV",
+    "_meta": {
+      "title": "Easy Apply IPAdapter (Advanced)"
+    }
+  },
+  "257": {
+    "inputs": {
+      "strength": 1,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "202",
+        0
+      ],
+      "negative": [
+        "201",
+        0
+      ],
+      "control_net": [
+        "258",
+        0
+      ],
+      "image": [
+        "259",
+        0
+      ],
+      "vae": [
+        "195",
+        2
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "258": {
+    "inputs": {
+      "control_net_name": "xinsir_controlnet_union-sdxl_promax.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "259": {
+    "inputs": {
+      "preprocessor": "AnyLineArtPreprocessor_aux",
+      "resolution": 512,
+      "image": [
+        "248",
+        0
+      ]
+    },
+    "class_type": "AIO_Preprocessor",
+    "_meta": {
+      "title": "AIO Aux Preprocessor"
+    }
+  }
+}

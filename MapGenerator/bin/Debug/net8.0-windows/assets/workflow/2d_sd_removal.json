@@ -1,0 +1,217 @@
+{
+  "45": {
+    "inputs": {
+      "brushnet": "powerpaintv2\\powerpaint_brushnet\\diffusion_pytorch_model.safetensors",
+      "dtype": "float16"
+    },
+    "class_type": "BrushNetLoader",
+    "_meta": {
+      "title": "BrushNet Loader"
+    }
+  },
+  "47": {
+    "inputs": {
+      "ckpt_name": "SD1.5\\dreamshaper_8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "49": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "50": {
+    "inputs": {
+      "text": "",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "47",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "52": {
+    "inputs": {
+      "seed": 641458988234588,
+      "steps": 20,
+      "cfg": 7.5,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "65",
+        0
+      ],
+      "positive": [
+        "65",
+        1
+      ],
+      "negative": [
+        "65",
+        2
+      ],
+      "latent_image": [
+        "65",
+        3
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "54": {
+    "inputs": {
+      "samples": [
+        "52",
+        0
+      ],
+      "vae": [
+        "47",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "65": {
+    "inputs": {
+      "fitting": 1,
+      "function": "object removal",
+      "scale": 1,
+      "start_at": 0,
+      "end_at": 10000,
+      "save_memory": "none",
+      "model": [
+        "47",
+        0
+      ],
+      "vae": [
+        "47",
+        2
+      ],
+      "image": [
+        "104",
+        0
+      ],
+      "mask": [
+        "177",
+        1
+      ],
+      "powerpaint": [
+        "45",
+        0
+      ],
+      "clip": [
+        "66",
+        0
+      ],
+      "positive": [
+        "49",
+        0
+      ],
+      "negative": [
+        "50",
+        0
+      ]
+    },
+    "class_type": "PowerPaint",
+    "_meta": {
+      "title": "PowerPaint"
+    }
+  },
+  "66": {
+    "inputs": {
+      "base": "clip_l.safetensors",
+      "powerpaint": "powerpaintv2\\powerpaint_brushnet\\pytorch_model.bin"
+    },
+    "class_type": "PowerPaintCLIPLoader",
+    "_meta": {
+      "title": "PowerPaint CLIP Loader"
+    }
+  },
+  "89": {
+    "inputs": {
+      "image": "ComfyUI_00113_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "104": {
+    "inputs": {
+      "amount": 1,
+      "image": [
+        "89",
+        0
+      ]
+    },
+    "class_type": "ImageCASharpening+",
+    "_meta": {
+      "title": "🔧 Image Contrast Adaptive Sharpening"
+    }
+  },
+  "172": {
+    "inputs": {
+      "image": [
+        "89",
+        0
+      ]
+    },
+    "class_type": "easy imageSize",
+    "_meta": {
+      "title": "ImageSize"
+    }
+  },
+  "176": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "54",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "177": {
+    "inputs": {
+      "image": "clipspace/clipspace-mask-7757557.699999999.png [input]"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  }
+}

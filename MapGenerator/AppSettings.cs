@@ -8,7 +8,7 @@ namespace MapGenerator
         public static string AppRootDirectory => AppDomain.CurrentDomain.BaseDirectory;
 
         // 获取图片资源目录
-        public static string AssetsDirectory => Path.Combine(AppRootDirectory, "..", "..", "..", "assets");
+        public static string AssetsDirectory => Path.Combine(AppRootDirectory,  "assets");
 
         // 获取地图输出目录
         public static string OutputDirectory
@@ -26,6 +26,7 @@ namespace MapGenerator
         }
 
         public static string TempDrawDirectory => Path.Combine(OutputDirectory, "temp", "draw");
+        public static string TempMaskDirectory => Path.Combine(OutputDirectory, "temp", "mask");
 
         public static string ArtChangesDirectory => Path.Combine(AssetsDirectory, "art_changes");
 
@@ -35,6 +36,7 @@ namespace MapGenerator
         public static string StyleTemplatePath => Path.Combine(AssetsDirectory, "style_template");
 
         public static string ProjectRawImgPath => Path.Combine(AssetsDirectory, "project_raw");
+        public static string ProjectPreloadImgPath => Path.Combine(ProjectRawImgPath, "preload");
 
         public static string RefImagePath => Path.Combine(AssetsDirectory, "reference/ref");
 
@@ -66,15 +68,13 @@ namespace MapGenerator
         // 笔刷颜色字典
         private static readonly List<MapBrush> BrushColors = new List<MapBrush>
         {
-            new(0, Color.Black, "默认"),
-            new(1, Color.FromArgb(255, 31, 0), "小路"),
-            new(2, Color.FromArgb(255, 9, 224), "房子"),
-            new(3, Color.FromArgb(61, 230, 250), "水"),
-            new(4, Color.FromArgb(4, 250, 7), "草地"),
-            new(5, Color.FromArgb(160, 150, 20), "沙滩"),
-            new(6, Color.FromArgb(255, 102, 0), "山丘"),
-            new(7, Color.FromArgb(4, 200, 3), "树"),
-            // new(8, Color.Red, "火"),
+            new(0, Color.FromArgb(255, 31, 0), "小路"),
+            new(1, Color.FromArgb(255, 9, 224), "房子"),
+            new(2, Color.FromArgb(61, 230, 250), "水"),
+            new(3, Color.FromArgb(4, 250, 7), "草地"),
+            new(4, Color.FromArgb(160, 150, 20), "沙滩"),
+            new(5, Color.FromArgb(255, 102, 0), "山丘"),
+            new(6, Color.FromArgb(4, 200, 3), "树"),
         };
 
         public static int BrushCnt => BrushColors.Count;

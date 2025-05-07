@@ -1,149 +1,146 @@
 import os
-import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
-from PIL import Image
 import threading
+from tkinter import Tk, Label, Entry, Button, filedialog, StringVar, IntVar, ttk, messagebox, Frame
+from PIL import Image
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import tkinter as tk
 
 class ImageResizerApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("图片缩放工具 - 512×512")
-        self.root.geometry("500x300")
-        
-        # 创建界面元素
-        self.create_widgets()
-        
-    def create_widgets(self):
-        # 目录选择
-        dir_frame = tk.Frame(self.root)
-        dir_frame.pack(fill=tk.X, padx=10, pady=10)
-        
-        tk.Label(dir_frame, text="图片目录:").pack(side=tk.LEFT)
-        self.dir_path = tk.StringVar()
-        tk.Entry(dir_frame, textvariable=self.dir_path, width=40).pack(side=tk.LEFT, padx=5)
-        tk.Button(dir_frame, text="浏览...", command=self.browse_directory).pack(side=tk.LEFT)
-        
-        # 进度条
-        progress_frame = tk.Frame(self.root)
-        progress_frame.pack(fill=tk.X, padx=10, pady=10)
-        
-        self.progress_var = tk.DoubleVar()
-        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, maximum=100)
-        self.progress_bar.pack(fill=tk.X, padx=5, pady=5)
-        
-        # 执行按钮
-        button_frame = tk.Frame(self.root)
-        button_frame.pack(fill=tk.X, padx=10, pady=20)
-        
-        self.resize_button = tk.Button(button_frame, text="开始缩放", command=self.start_resize,
-                  bg="#4CAF50", fg="white", height=2, width=20)
-        self.resize_button.pack()
-        
-        # 状态标签
-        status_frame = tk.Frame(self.root)
-        status_frame.pack(fill=tk.X, side=tk.BOTTOM)
-        
-        self.status_var = tk.StringVar(value="准备就绪")
-        self.count_var = tk.StringVar(value="")
-        
-        tk.Label(status_frame, textvariable=self.count_var).pack(side=tk.RIGHT, padx=5)
-        tk.Label(status_frame, textvariable=self.status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W).pack(side=tk.LEFT, fill=tk.X, expand=True)
-    
-    def browse_directory(self):
-        directory = filedialog.askdirectory()
-        if directory:
-            self.dir_path.set(directory)
-    
-    def start_resize(self):
-        dir_path = self.dir_path.get()
-        
-        if not dir_path:
-            messagebox.showerror("错误", "请选择图片目录")
-            return
-        
-        # 禁用按钮避免重复操作
-        self.resize_button.config(state=tk.DISABLED)
-        
-        # 使用线程执行耗时操作，避免界面卡死
-        thread = threading.Thread(target=self.resize_images, args=(dir_path,))
-        thread.daemon = True
-        thread.start()
-    
-    def resize_images(self, dir_path):
-        try:
-            # 获取所有图片文件
-            image_files = [f for f in os.listdir(dir_path) 
-                          if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff', '.webp'))]
-            
-            if not image_files:
-                messagebox.showinfo("提示", "所选目录中没有发现图片文件")
-                self.root.after(0, lambda: self.resize_button.config(state=tk.NORMAL))
-                self.root.after(0, lambda: self.status_var.set("准备就绪"))
-                return
-            
-            total_images = len(image_files)
-            processed = 0
-            
-            self.root.after(0, lambda: self.status_var.set("正在处理图片..."))
-            self.root.after(0, lambda: self.count_var.set(f"0/{total_images}"))
-            
-            for img_file in image_files:
-                # 检查文件名是否已经有_512后缀
-                name, ext = os.path.splitext(img_file)
-                if name.endswith("_512"):
-                    processed += 1
-                    self.root.after(0, lambda p=processed, t=total_images: 
-                        self.count_var.set(f"{p}/{t}"))
-                    self.root.after(0, lambda p=processed, t=total_images: 
-                        self.progress_var.set(p/t*100))
-                    continue
-                
-                # 构建输出文件名
-                output_filename = f"{name}_512{ext}"
-                input_path = os.path.join(dir_path, img_file)
-                output_path = os.path.join(dir_path, output_filename)
-                
-                # 打开图片并调整大小
-                with Image.open(input_path) as img:
-                    # 计算等比缩放后的尺寸
-                    width, height = img.size
-                    if width >= height:
-                        # 宽边是较长边
-                        new_width = 512
-                        new_height = int(height * (512 / width))
-                    else:
-                        # 高边是较长边
-                        new_height = 512
-                        new_width = int(width * (512 / height))
-                    
-                    # 使用高质量的 LANCZOS 重采样方法
-                    resized_img = img.resize((new_width, new_height), Image.LANCZOS)
-                    
-                    # 保存图片，使用最高质量设置
-                    if ext.lower() in ['.jpg', '.jpeg']:
-                        resized_img.save(output_path, quality=95, optimize=True)
-                    elif ext.lower() == '.png':
-                        resized_img.save(output_path, optimize=True)
-                    else:
-                        resized_img.save(output_path)
-                
-                processed += 1
-                self.root.after(0, lambda p=processed, t=total_images: 
-                    self.count_var.set(f"{p}/{t}"))
-                self.root.after(0, lambda p=processed, t=total_images: 
-                    self.progress_var.set(p/t*100))
-            
-            self.root.after(0, lambda: self.status_var.set(f"处理完成! 已处理 {processed} 张图片"))
-            self.root.after(0, lambda: messagebox.showinfo("完成", f"所有图片已处理完成!\n共处理了 {processed} 张图片"))
-        
-        except Exception as e:
-            self.root.after(0, lambda: messagebox.showerror("错误", f"处理图片时出错:\n{str(e)}"))
-            self.root.after(0, lambda: self.status_var.set("处理过程中发生错误"))
-        
-        finally:
-            self.root.after(0, lambda: self.resize_button.config(state=tk.NORMAL))
+    def __init__(self, master):
+        self.master = master
 
-if __name__ == "__main__":
-    root = tk.Tk()
+        self.img_path = StringVar()
+        self.save_dir = StringVar()
+        self.target_pixel = IntVar(value=512)
+        self.progress = IntVar(value=0)
+        self.total = IntVar(value=1)
+
+        # 路径输入区
+        path_frame = Frame(master)
+        path_frame.pack(fill='x', pady=5)
+        Label(path_frame, text='图片/文件夹路径:').pack(anchor='w')
+        entry_path = Entry(path_frame, textvariable=self.img_path, width=50)
+        entry_path.pack(side='left', padx=2, expand=True, fill='x')
+        Button(path_frame, text='选择文件', command=self.select_file, width=8).pack(side='left', padx=2)
+        Button(path_frame, text='选择文件夹', command=self.select_folder, width=10).pack(side='left', padx=2)
+
+        # 保存目录区
+        save_frame = Frame(master)
+        save_frame.pack(fill='x', pady=5)
+        Label(save_frame, text='保存目录:').pack(anchor='w')
+        entry_save = Entry(save_frame, textvariable=self.save_dir, width=50)
+        entry_save.pack(side='left', padx=2, expand=True, fill='x')
+        Button(save_frame, text='选择保存目录', command=self.select_save_dir, width=12).pack(side='left', padx=2)
+
+        # 目标像素区
+        pixel_frame = Frame(master)
+        pixel_frame.pack(fill='x', pady=5)
+        Label(pixel_frame, text='目标像素(最长边):').pack(side='left', padx=2)
+        Entry(pixel_frame, textvariable=self.target_pixel, width=10).pack(side='left', padx=2)
+
+        # 按钮区
+        btn_frame = Frame(master)
+        btn_frame.pack(fill='x', padx=10, pady=10)
+        Button(btn_frame, text='开始缩放', command=self.start_resize, bg="#4CAF50", fg="white", height=2, width=20).pack(side=tk.LEFT, padx=5)
+        Button(btn_frame, text='批量缩放', command=self.start_batch_resize, bg="#FF9800", fg="white", height=2, width=20).pack(side=tk.LEFT, padx=5)
+
+        # 进度条区
+        progress_frame = Frame(master)
+        progress_frame.pack(fill='x', pady=10)
+        self.progressbar = ttk.Progressbar(progress_frame, length=400, variable=self.progress, maximum=100)
+        self.progressbar.pack(pady=2, padx=10, fill='x')
+
+        # 功能说明与使用说明
+        desc = (
+            "功能：批量缩放图片到指定最大边长。\n"
+            "使用说明：\n"
+            "1. 选择单张图片或图片文件夹。\n"
+            "2. 选择保存目录，设置目标像素。保存路径选择地图编辑器中“assets/project_raw/preload目录“\n"
+            "3. 点击“开始缩放”或“批量缩放”按钮。"
+        )
+        Label(master, text=desc, fg="#555", justify='left', anchor='w').pack(fill='x', padx=10, pady=(0,10))
+
+    def select_file(self):
+        path = filedialog.askopenfilename(filetypes=[('Image Files', '*.png;*.jpg;*.jpeg;*.bmp;*.gif')])
+        if path:
+            self.img_path.set(path)
+
+    def select_folder(self):
+        path = filedialog.askdirectory()
+        if path:
+            self.img_path.set(path)
+
+    def select_save_dir(self):
+        path = filedialog.askdirectory()
+        if path:
+            self.save_dir.set(path)
+
+    def resize_image(self, img_path, save_dir, target_pixel):
+        try:
+            img = Image.open(img_path)
+            w, h = img.size
+            if w >= h:
+                new_w = target_pixel
+                new_h = int(h * target_pixel / w)
+            else:
+                new_h = target_pixel
+                new_w = int(w * target_pixel / h)
+            img = img.resize((new_w, new_h), Image.LANCZOS)
+            base = os.path.basename(img_path)
+            save_path = os.path.join(save_dir, base)
+            img.save(save_path)
+            return True
+        except Exception as e:
+            print(f'处理失败: {img_path}, 错误: {e}')
+            return False
+
+    def start_resize(self):
+        img_path = self.img_path.get()
+        save_dir = self.save_dir.get()
+        target_pixel = self.target_pixel.get()
+        if not os.path.isfile(img_path):
+            messagebox.showerror('错误', '请选择有效的图片文件路径')
+            return
+        if not os.path.isdir(save_dir):
+            messagebox.showerror('错误', '请选择有效的保存目录')
+            return
+        self.progress.set(0)
+        self.total.set(1)
+        def task():
+            ok = self.resize_image(img_path, save_dir, target_pixel)
+            self.progress.set(100 if ok else 0)
+            messagebox.showinfo('完成', '图片缩放完成' if ok else '图片缩放失败')
+        threading.Thread(target=task).start()
+
+    def start_batch_resize(self):
+        folder = self.img_path.get()
+        save_dir = self.save_dir.get()
+        target_pixel = self.target_pixel.get()
+        if not os.path.isdir(folder):
+            messagebox.showerror('错误', '请选择有效的图片文件夹路径')
+            return
+        if not os.path.isdir(save_dir):
+            messagebox.showerror('错误', '请选择有效的保存目录')
+            return
+        img_files = [os.path.join(folder, f) for f in os.listdir(folder)
+                     if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif'))]
+        total = len(img_files)
+        if total == 0:
+            messagebox.showerror('错误', '文件夹下没有图片文件')
+            return
+        self.progress.set(0)
+        self.total.set(total)
+        def batch_task():
+            with ThreadPoolExecutor(max_workers=8) as executor:
+                futures = [executor.submit(self.resize_image, f, save_dir, target_pixel) for f in img_files]
+                done = 0
+                for future in as_completed(futures):
+                    done += 1
+                    self.progress.set(int(done / total * 100))
+            messagebox.showinfo('完成', '批量缩放完成')
+        threading.Thread(target=batch_task).start()
+
+if __name__ == '__main__':
+    root = Tk()
     app = ImageResizerApp(root)
     root.mainloop()

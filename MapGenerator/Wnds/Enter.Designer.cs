@@ -31,16 +31,16 @@
             listView = new ListView();
             btnCreate = new Button();
             tabControl1 = new TabControl();
-            creationModeTab = new TabPage();
             changeModeTab = new TabPage();
             btnFlow = new FlowLayoutPanel();
             newBtn = new Button();
             btnOpen = new Button();
             projectList = new ListView();
+            creationModeTab = new TabPage();
             tabControl1.SuspendLayout();
-            creationModeTab.SuspendLayout();
             changeModeTab.SuspendLayout();
             btnFlow.SuspendLayout();
+            creationModeTab.SuspendLayout();
             SuspendLayout();
             // 
             // listView
@@ -66,26 +66,14 @@
             // 
             // tabControl1
             // 
-            tabControl1.Controls.Add(creationModeTab);
             tabControl1.Controls.Add(changeModeTab);
+            tabControl1.Controls.Add(creationModeTab);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new Size(819, 555);
             tabControl1.TabIndex = 2;
-            // 
-            // creationModeTab
-            // 
-            creationModeTab.Controls.Add(listView);
-            creationModeTab.Controls.Add(btnCreate);
-            creationModeTab.Location = new Point(4, 26);
-            creationModeTab.Name = "creationModeTab";
-            creationModeTab.Padding = new Padding(3);
-            creationModeTab.Size = new Size(811, 525);
-            creationModeTab.TabIndex = 0;
-            creationModeTab.Text = "创作模式";
-            creationModeTab.UseVisualStyleBackColor = true;
             // 
             // changeModeTab
             // 
@@ -143,6 +131,18 @@
             projectList.UseCompatibleStateImageBehavior = false;
             projectList.View = View.Details;
             // 
+            // creationModeTab
+            // 
+            creationModeTab.Controls.Add(listView);
+            creationModeTab.Controls.Add(btnCreate);
+            creationModeTab.Location = new Point(4, 26);
+            creationModeTab.Name = "creationModeTab";
+            creationModeTab.Padding = new Padding(3);
+            creationModeTab.Size = new Size(811, 525);
+            creationModeTab.TabIndex = 0;
+            creationModeTab.Text = "创作模式";
+            creationModeTab.UseVisualStyleBackColor = true;
+            // 
             // Enter
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -150,13 +150,13 @@
             ClientSize = new Size(819, 555);
             Controls.Add(tabControl1);
             Name = "Enter";
-            Text = "AIGC地图编辑器";
+            Text = "AI地图生成器";
             Load += Enter_Load;
             tabControl1.ResumeLayout(false);
-            creationModeTab.ResumeLayout(false);
             changeModeTab.ResumeLayout(false);
             changeModeTab.PerformLayout();
             btnFlow.ResumeLayout(false);
+            creationModeTab.ResumeLayout(false);
             ResumeLayout(false);
         }
 

@@ -1,10 +1,9 @@
-﻿
-namespace MapGenerator.Components
+﻿namespace MapGenerator.Components
 {
     public partial class IconItemControl_H : UserControl
     {
         public int Idx { private set; get; }
-        public string FilePath { get; private set; }
+        public string? FilePath { get; private set; } = null;
 
         public IconItemControl_H()
         {
@@ -37,7 +36,18 @@ namespace MapGenerator.Components
                     this.bgColor.Height = 64;
                 }
                 this.label.Text = label;
-                this.bgColor.BackgroundImage = Image.FromFile(imgPath);
+                using(var srcImg = Image.FromFile(imgPath))
+                {
+                    var thumb = new Bitmap(this.bgColor.Width, this.bgColor.Height);
+                    using(var g = Graphics.FromImage(thumb))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.Clear(Color.Transparent);
+                        g.DrawImage(srcImg, 0, 0, thumb.Width, thumb.Height);
+                    }
+                    this.bgColor.BackgroundImage = (Image)thumb.Clone();
+                    thumb.Dispose();
+                }
                 this.Idx = idx;
                 
             }catch{
@@ -50,9 +60,9 @@ namespace MapGenerator.Components
             this.BackColor = selected ? Color.Yellow : Color.Gray;
         }
 
-        public Image GetImage()
+        public Image? GetImage()
         {
-            return (Image)this.bgColor.BackgroundImage.Clone();
+            return this.bgColor.BackgroundImage != null ? (Image)this.bgColor.BackgroundImage.Clone() : null;
         }
 
         public string GetImgName()

@@ -108,19 +108,26 @@ namespace MapGenerator.Utils
             }
         }
 
-        public static void LoadImageToListView(string[] imagePaths, ref ListView list)
+        public static void LoadThumbnailImages(string[] imagePaths, ref FlowLayoutPanel layout, int[]? size = null, EventHandler clickFunc = null)
         {
-            ImageList imageList = new ImageList();
-            imageList.ImageSize = new Size(128, 128);
-            list.LargeImageList = imageList;
-
+            int sizeX = size == null ? 120 : size[0];
+            int sizeY = size == null ? 120 : size[1];
             try
             {
                 for (int i = 0; i < imagePaths.Length; i++)
                 {
                     Image img = Image.FromFile(imagePaths[i]);
+                    Image thumbnail = img.GetThumbnailImage(sizeX, sizeY, null, IntPtr.Zero); // 生成 100x100 的缩略图
 
-                    imageList.Images.Add(img);
+                    // 使用 PictureBox 显示缩略图
+                    PictureBox pictureBox = new PictureBox();
+                    pictureBox.Image = thumbnail;
+                    pictureBox.Size = new Size(sizeX, sizeY);
+
+                    pictureBox.Click += clickFunc;
+                    pictureBox.DoubleClick += ReferenceImage_DBClick;
+
+                    layout.Controls.Add(pictureBox);
                 }
             }
             catch (Exception ex)
@@ -133,16 +140,14 @@ namespace MapGenerator.Utils
         {
             layout.Controls.Clear();
 
-
-
             for (int i = 0; i < imagePaths.Length; i++)
             {
                 if (isVertical)
                 {
                     IconItemControl_V iconItemControl = new IconItemControl_V();
                     string fileName = Path.GetFileNameWithoutExtension(imagePaths[i]);
-                    iconItemControl.SetImg(imagePaths[i], fileName, i,size);
-                    if(clickFunc != null)
+                    iconItemControl.SetImg(imagePaths[i], fileName, i, size);
+                    if (clickFunc != null)
                         iconItemControl.Click += clickFunc;
                     layout.Controls.Add(iconItemControl);
                 }
@@ -150,14 +155,39 @@ namespace MapGenerator.Utils
                 {
                     IconItemControl_H iconItemControl = new IconItemControl_H();
                     string fileName = Path.GetFileNameWithoutExtension(imagePaths[i]);
-                    iconItemControl.SetImg(imagePaths[i], fileName, i,size);
-                    if(clickFunc != null)
+                    iconItemControl.SetImg(imagePaths[i], fileName, i, size);
+                    if (clickFunc != null)
                         iconItemControl.Click += clickFunc;
                     layout.Controls.Add(iconItemControl);
                 }
 
             }
         }
+
+        public static TabPage NewPaintingTab(ref TabControl tabControl, bool lockCursorIcon = false)
+        {
+            //MainViewTab新增一个tab
+            TabPage newTabPage = new TabPage();
+            newTabPage.AutoScroll = false;
+            tabControl.TabPages.Add(newTabPage);
+            newTabPage.Text = "New";
+
+            RulerPainting rulerPainting = new RulerPainting();
+            if (lockCursorIcon)
+                rulerPainting.CurserIconCanChange(false);
+            newTabPage.Controls.Add(rulerPainting);
+            rulerPainting.Dock = DockStyle.Fill;
+
+            tabControl.SelectedIndex = tabControl.Controls.Count - 1;
+
+            return newTabPage;
+        }
+
+
+        private void LogStr(string str){
+            System.Diagnostics.Debug.WriteLine(str);
+        }
+
     }
 
 }

@@ -57,8 +57,8 @@
             width.Size = new Size(100, 23);
             width.TabIndex = 1;
             width.Text = "512";
+            width.TextChanged += width_Leave;
             width.KeyDown += width_KeyDown;
-            width.Leave += width_Leave;
             // 
             // flowLayoutPanel1
             // 
@@ -78,8 +78,8 @@
             height.Size = new Size(100, 23);
             height.TabIndex = 2;
             height.Text = "512";
+            height.TextChanged += height_Leave;
             height.KeyDown += height_KeyDown;
-            height.Leave += height_Leave;
             // 
             // SizeSetting
             // 

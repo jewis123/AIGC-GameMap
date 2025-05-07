@@ -19,5 +19,10 @@ namespace MapGenerator.Request.ComfyUI
 
             return;
         }
+
+        public ComfyUIClient Client => _comfyClient;
+
+        public string LastPromptId {get;protected set;}
+        public string LastNodeId {get;protected set;}
     }
 }

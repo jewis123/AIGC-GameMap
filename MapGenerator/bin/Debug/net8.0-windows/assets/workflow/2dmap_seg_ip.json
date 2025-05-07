@@ -1,0 +1,317 @@
+{
+  "4": {
+    "inputs": {
+      "strength": 2.0000000000000004,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "33",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "control_net": [
+        "5",
+        0
+      ],
+      "image": [
+        "30",
+        0
+      ],
+      "vae": [
+        "9",
+        2
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "5": {
+    "inputs": {
+      "control_net_name": "sdxl_segmentation_ade20k_controlnet.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "7": {
+    "inputs": {
+      "text": "text,bad_quality,blurry, glitches, artifact, distorted, malformed，human,people,person,girl,boy,man,woman.",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "21",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "seed": 620477593974385,
+      "steps": 20,
+      "cfg": 7,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 1,
+      "model": [
+        "18",
+        0
+      ],
+      "positive": [
+        "4",
+        0
+      ],
+      "negative": [
+        "4",
+        1
+      ],
+      "latent_image": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "9": {
+    "inputs": {
+      "ckpt_name": "xl\\Albedobase_SDXLHyper_v1.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "13": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "14": {
+    "inputs": {
+      "samples": [
+        "8",
+        0
+      ],
+      "vae": [
+        "9",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "17": {
+    "inputs": {
+      "image": "draw.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "drawing"
+    }
+  },
+  "18": {
+    "inputs": {
+      "preset": "VIT-G (medium strength)",
+      "lora_strength": 0.6,
+      "provider": "CUDA",
+      "weight": 0.6000000000000001,
+      "weight_faceidv2": 1,
+      "weight_type": "style transfer",
+      "combine_embeds": "concat",
+      "start_at": 0,
+      "end_at": 1,
+      "embeds_scaling": "K+V",
+      "cache_mode": "all",
+      "use_tiled": false,
+      "use_batch": false,
+      "sharpening": 0.20000000000000004,
+      "layer_weights": "",
+      "model": [
+        "21",
+        0
+      ],
+      "image": [
+        "32",
+        0
+      ],
+      "clip_vision": [
+        "20",
+        0
+      ]
+    },
+    "class_type": "easy ipadapterApplyADV",
+    "_meta": {
+      "title": "Easy Apply IPAdapter (Advanced)"
+    }
+  },
+  "19": {
+    "inputs": {
+      "image": "多彩.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "ipadapter"
+    }
+  },
+  "20": {
+    "inputs": {
+      "clip_name": "CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "21": {
+    "inputs": {
+      "lora_name": "xl\\2.5D游戏地图_Tr_25DstyleMAP_DMP+Karras+30Steps.safetensors",
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
+      "model": [
+        "9",
+        0
+      ],
+      "clip": [
+        "9",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "25": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "31",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "26": {
+    "inputs": {
+      "text": "road,trees,house,water,sand",
+      "seed": 409275657952198,
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "21",
+        1
+      ]
+    },
+    "class_type": "SixGodPrompts",
+    "_meta": {
+      "title": "六神clip文本编码(自动翻译)"
+    }
+  },
+  "30": {
+    "inputs": {
+      "size": 1024,
+      "interpolation_mode": "bicubic",
+      "image": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "JWImageResizeByLongerSide",
+    "_meta": {
+      "title": "Image Resize by Longer Side"
+    }
+  },
+  "31": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "interpolation": "lanczos",
+      "method": "keep proportion",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  },
+  "32": {
+    "inputs": {
+      "interpolation": "LANCZOS",
+      "crop_position": "top",
+      "sharpening": 0.20000000000000004,
+      "image": [
+        "19",
+        0
+      ]
+    },
+    "class_type": "PrepImageForClipVision",
+    "_meta": {
+      "title": "Prep Image For ClipVision"
+    }
+  },
+  "33": {
+    "inputs": {
+      "prompt_g": "masterpiece, best quality, 8K, 2D isometric fixed top-down perspective, RPG game map, highly detailed,​\n\n",
+      "prompt_l": [
+        "26",
+        1
+      ],
+      "insert_lora": "CHOOSE",
+      "insert_embedding": "CHOOSE",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "opt_model": [
+        "18",
+        0
+      ],
+      "opt_clip": [
+        "21",
+        1
+      ]
+    },
+    "class_type": "SDXL Power Prompt - Positive (rgthree)",
+    "_meta": {
+      "title": "SDXL Power Prompt - Positive (rgthree)"
+    }
+  }
+}

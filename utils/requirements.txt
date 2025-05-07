@@ -1,0 +1,6 @@
+pillow
+numpy
+flask
+requests
+tkinter
+huggingface_hub

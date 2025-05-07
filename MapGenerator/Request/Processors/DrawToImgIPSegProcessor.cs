@@ -20,7 +20,7 @@ namespace MapGenerator.Request.ComfyUI
         /// <param name="refImgPath">用户参考的图片路径</param>
         /// <param name="pixcels">用户设置的生成尺寸</param>
         /// <returns>生成的图片路径，如果处理失败则返回null</returns>
-        public async Task<string?> Process(string prompt, string drawImagePath, string refImgPath, int[] pixcels)
+        public async Task<string?> Process(string prompt, string drawImagePath, string refImgPath, int[] pixcels, IProgress<int> progress)
         {
             try
             {
@@ -28,6 +28,7 @@ namespace MapGenerator.Request.ComfyUI
                 await _comfyClient.CancelCurrentExecution();
 
                 // 上传绘制的图片
+                progress.Report(10);
                 string uploadedImageName = string.Empty;
                 if (!string.IsNullOrEmpty(drawImagePath) && File.Exists(drawImagePath))
                 {
@@ -40,6 +41,7 @@ namespace MapGenerator.Request.ComfyUI
                 }
 
                 // 上传绘制的图片
+                progress.Report(15);
                 string uploadedRefImageName = string.Empty;
                 if (!string.IsNullOrEmpty(refImgPath) && File.Exists(refImgPath))
                 {
@@ -52,6 +54,7 @@ namespace MapGenerator.Request.ComfyUI
                 }
 
                 // 准备工作流
+                progress.Report(30);
                 var modifiedWorkflow = await PrepareWorkflow(prompt, uploadedImageName, uploadedRefImageName, pixcels);
                 if (modifiedWorkflow == null)
                 {
@@ -65,6 +68,7 @@ namespace MapGenerator.Request.ComfyUI
                 };
 
                 // 发送工作流到ComfyUI并获取promptId
+                progress.Report(40);
                 string? promptId = await _comfyClient.ExecuteWorkflow(requestData);
                 if (string.IsNullOrEmpty(promptId))
                 {
@@ -80,6 +84,7 @@ namespace MapGenerator.Request.ComfyUI
                     MessageBox.Show("无法获取生成的图片");
                     return null;
                 }
+                progress.Report(100);
 
                 return resultImagePath;
             }
@@ -166,39 +171,39 @@ namespace MapGenerator.Request.ComfyUI
                     }
                 }
 
-                // 修改节点 13（LantentImage）使用我们设置的像素值
-                    var node13 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    workflow["13"].GetRawText());
+                // 修改节点 31（LantentImage）使用我们设置的像素值
+                    var node31 = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    workflow["31"].GetRawText());
                     
-                    if (node13 != null && node13.ContainsKey("inputs"))
+                    if (node31 != null && node31.ContainsKey("inputs"))
                     {
                         var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                            ((JsonElement)node13["inputs"]).GetRawText());
+                            ((JsonElement)node31["inputs"]).GetRawText());
                             
                         if (inputs != null)
                         {
                             inputs["width"] = pixcels[0];
                             inputs["height"] = pixcels[1];
-                            node13["inputs"] = inputs;
-                            modifiedWorkflow["13"] = node13;
+                            node31["inputs"] = inputs;
+                            modifiedWorkflow["31"] = node31;
                         }
                     }
                 
 
-                // 修改节点 22（DeepTranslatorCLIPTextEncode）使用我们的提示词
-                var node22 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    workflow["22"].GetRawText());
+                // 修改节点 26（DeepTranslatorCLIPTextEncode）使用我们的提示词
+                var node26 = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    workflow["26"].GetRawText());
                     
-                if (node22 != null && node22.ContainsKey("inputs"))
+                if (node26 != null && node26.ContainsKey("inputs"))
                 {
                     var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                        ((JsonElement)node22["inputs"]).GetRawText());
+                        ((JsonElement)node26["inputs"]).GetRawText());
                         
                     if (inputs != null)
                     {
                         inputs["text"] = prompt;
-                        node22["inputs"] = inputs;
-                        modifiedWorkflow["22"] = node22;
+                        node26["inputs"] = inputs;
+                        modifiedWorkflow["26"] = node26;
                     }
                 }
 

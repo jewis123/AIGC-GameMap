@@ -29,8 +29,8 @@
         private void InitializeComponent()
         {
             label = new Label();
-            bgColor = new Panel();
             flowLayoutPanel1 = new FlowLayoutPanel();
+            bgColor = new Panel();
             flowLayoutPanel1.SuspendLayout();
             SuspendLayout();
             // 
@@ -43,16 +43,6 @@
             label.TabIndex = 0;
             label.Text = "xcxcxczcxzc";
             // 
-            // bgColor
-            // 
-            bgColor.BackColor = SystemColors.Control;
-            bgColor.BackgroundImageLayout = ImageLayout.Zoom;
-            bgColor.BorderStyle = BorderStyle.FixedSingle;
-            bgColor.Location = new Point(3, 3);
-            bgColor.Name = "bgColor";
-            bgColor.Size = new Size(203, 140);
-            bgColor.TabIndex = 1;
-            // 
             // flowLayoutPanel1
             // 
             flowLayoutPanel1.AutoSize = true;
@@ -64,6 +54,16 @@
             flowLayoutPanel1.Name = "flowLayoutPanel1";
             flowLayoutPanel1.Size = new Size(209, 166);
             flowLayoutPanel1.TabIndex = 0;
+            // 
+            // bgColor
+            // 
+            bgColor.BackColor = SystemColors.Control;
+            bgColor.BackgroundImageLayout = ImageLayout.Zoom;
+            bgColor.BorderStyle = BorderStyle.FixedSingle;
+            bgColor.Location = new Point(3, 3);
+            bgColor.Name = "bgColor";
+            bgColor.Size = new Size(203, 140);
+            bgColor.TabIndex = 1;
             // 
             // IconItemControl_V
             // 
@@ -82,7 +82,7 @@
         #endregion
 
         private Label label;
-        private Panel bgColor;
         private FlowLayoutPanel flowLayoutPanel1;
+        private Panel bgColor;
     }
 }

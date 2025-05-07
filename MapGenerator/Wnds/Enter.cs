@@ -1,4 +1,3 @@
-using System.Collections;
 using MapGenerator.Wnds;
 
 namespace MapGenerator
@@ -31,12 +30,12 @@ namespace MapGenerator
             try
             {
                 string tempPath = AppSettings.AssetTempPath;
-                
+
                 if (Directory.Exists(tempPath))
                 {
                     // 获取目录下的所有文件
                     string[] files = Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories);
-                    
+
                     foreach (string file in files)
                     {
                         try
@@ -49,7 +48,7 @@ namespace MapGenerator
                             Console.WriteLine($"无法删除文件 {file}: {ex.Message}");
                         }
                     }
-                    
+
                     // 显示成功消息
                     Console.WriteLine($"已清理 {files.Length} 个临时文件");
                 }
@@ -127,6 +126,8 @@ namespace MapGenerator
 
         private void InitializeStyleChangeRecordListView()
         {
+            projectList.Columns.Clear();
+            projectList.Items.Clear();
             var records = File.ReadAllLines(Path.Combine(AppSettings.ArtChangesDirectory, "records.txt"));
             projectList.Columns.Add("历史记录", projectList.ClientSize.Width); // 列名和宽度
             projectList.FullRowSelect = true;
@@ -134,8 +135,37 @@ namespace MapGenerator
             {
                 projectList.Items.Add(record);
             }
-
             projectList.ItemSelectionChanged += ProjectList_SelectedIndexChanged;
+
+            // 添加右键菜单
+            ContextMenuStrip contextMenu = new ContextMenuStrip();
+            ToolStripMenuItem deleteItem = new ToolStripMenuItem("删除记录");
+            deleteItem.Click += DeleteRecordMenuItem_Click;
+            contextMenu.Items.Add(deleteItem);
+            projectList.ContextMenuStrip = contextMenu;
+        }
+
+        private void DeleteRecordMenuItem_Click(object? sender, EventArgs e)
+        {
+            if (projectList.SelectedItems.Count == 0) return;
+            var item = projectList.SelectedItems[0];
+            var recordName = item.Text;
+            var result = MessageBox.Show($"确定要删除记录：{recordName} 吗？\n此操作不可恢复。", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (result == DialogResult.Yes)
+            {
+                // 删除records.txt中的对应行
+                string recordsPath = Path.Combine(AppSettings.ArtChangesDirectory, "records.txt");
+                var allRecords = File.ReadAllLines(recordsPath).ToList();
+                allRecords.RemoveAll(r => r.Trim() == recordName.Trim());
+                File.WriteAllLines(recordsPath, allRecords);
+                // 删除对应文件夹
+                string dir = Path.Combine(AppSettings.ArtChangesDirectory, recordName);
+                if (Directory.Exists(dir))
+                {
+                    try { Directory.Delete(dir, true); } catch { }
+                }
+                InitializeStyleChangeRecordListView();
+            }
         }
 
         private void ProjectList_SelectedIndexChanged(object? sender, ListViewItemSelectionChangedEventArgs e)
@@ -166,7 +196,6 @@ namespace MapGenerator
                 {
                     this.Show();
                 };
-
                 win.Show();
                 this.Hide();
             }

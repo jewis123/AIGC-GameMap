@@ -1,0 +1,249 @@
+{
+  "22": {
+    "inputs": {
+      "ckpt_name": "xl\\Albedobase_SDXLHyper_v1.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "23": {
+    "inputs": {
+      "lora_name": "xl\\2.5D游戏地图_Tr_25DstyleMAP_DMP+Karras+30Steps.safetensors",
+      "strength_model": 1.0000000000000002,
+      "strength_clip": 1.0000000000000002,
+      "model": [
+        "22",
+        0
+      ],
+      "clip": [
+        "22",
+        1
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA"
+    }
+  },
+  "25": {
+    "inputs": {
+      "text": "text,bad_quality,blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "26": {
+    "inputs": {
+      "image": "New Drawing (7).png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "27": {
+    "inputs": {
+      "control_net_name": "sdxl_segmentation_ade20k_controlnet.safetensors"
+    },
+    "class_type": "ControlNetLoader",
+    "_meta": {
+      "title": "Load ControlNet Model"
+    }
+  },
+  "28": {
+    "inputs": {
+      "strength": 2.0000000000000004,
+      "start_percent": 0,
+      "end_percent": 1,
+      "positive": [
+        "38",
+        0
+      ],
+      "negative": [
+        "25",
+        0
+      ],
+      "control_net": [
+        "27",
+        0
+      ],
+      "image": [
+        "46",
+        0
+      ],
+      "vae": [
+        "22",
+        2
+      ]
+    },
+    "class_type": "ControlNetApplyAdvanced",
+    "_meta": {
+      "title": "Apply ControlNet"
+    }
+  },
+  "29": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "32": {
+    "inputs": {
+      "seed": 705947932717581,
+      "steps": 24,
+      "cfg": 7.5,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "23",
+        0
+      ],
+      "positive": [
+        "28",
+        0
+      ],
+      "negative": [
+        "28",
+        1
+      ],
+      "latent_image": [
+        "29",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "33": {
+    "inputs": {
+      "samples": [
+        "32",
+        0
+      ],
+      "vae": [
+        "22",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "34": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "40",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "37": {
+    "inputs": {
+      "text": "road,houses,sand water,trees",
+      "seed": 1079437890525818,
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "SixGodPrompts",
+    "_meta": {
+      "title": "六神clip文本编码(自动翻译)"
+    }
+  },
+  "38": {
+    "inputs": {
+      "prompt_g": "masterpiece, best quality, 8K, 2D isometric fixed top-down perspective, RPG game map, highly detailed,​\n\n",
+      "prompt_l": [
+        "37",
+        1
+      ],
+      "insert_lora": "CHOOSE",
+      "insert_embedding": "CHOOSE",
+      "speak_and_recognation": {
+        "__value__": [
+          false,
+          true
+        ]
+      },
+      "opt_model": [
+        "23",
+        0
+      ],
+      "opt_clip": [
+        "23",
+        1
+      ]
+    },
+    "class_type": "SDXL Power Prompt - Positive (rgthree)",
+    "_meta": {
+      "title": "SDXL Power Prompt - Positive (rgthree)"
+    }
+  },
+  "40": {
+    "inputs": {
+      "width": 512,
+      "height": 512,
+      "interpolation": "lanczos",
+      "method": "keep proportion",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "33",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  },
+  "46": {
+    "inputs": {
+      "size": 1024,
+      "interpolation_mode": "bicubic",
+      "image": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "JWImageResizeByLongerSide",
+    "_meta": {
+      "title": "Image Resize by Longer Side"
+    }
+  }
+}

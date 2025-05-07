@@ -4,11 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace MapGenerator.Components
 {
-    internal static class Win32
-    {
-        [DllImport("user32.dll", SetLastError = true)]
-        public static extern bool DestroyIcon(IntPtr hIcon);
-    }
+
 
     public partial class PaintCanvas : UserControl
     {
@@ -22,7 +18,7 @@ namespace MapGenerator.Components
         // 装饰物类，用于记录添加到画布上的装饰
         public class DecoratorItem
         {
-            public Image Image{get;set;}
+            public Image Image { get; set; }
             public Point Location { get; set; }
             public int Size { get; set; }
             public string Name { get; set; }
@@ -57,7 +53,8 @@ namespace MapGenerator.Components
         private Color maskColor = Color.Pink;
         private float maskOpacity = 0.5f; // 涂抹区域的透明度
         private bool isMouseInControl = false;
-
+        private List<Bitmap> maskUndoStack = new List<Bitmap>(); // 遮罩撤销栈
+        private float _zoomScale = 1.0f;
         // 装饰物相关属性
         private bool _decoratorMode = false;
         private Image? _currentDecorator = null;
@@ -67,25 +64,31 @@ namespace MapGenerator.Components
         private Point _currentMousePos = Point.Empty;
         private List<DecoratorItem> _decoratorItems = new List<DecoratorItem>();
         private string _decoratorName = "";
+        // 添加originalDecorators字段，用于存储原始装饰物数据
+        private List<DecoratorItem> originalDecorators = new List<DecoratorItem>(); // 存储原始装饰物数据
 
         private bool _isLocked = false; // 画布锁定状态
+        private int[] originSize = [512, 512];
 
-        public bool DecorateMode=>_decoratorMode;
-        public bool IsLocked =>_isLocked;
-        
+        public bool DecorateMode => _decoratorMode;
+        public bool IsLocked => _isLocked;
+
+        public bool CanChangeCursorIcon { get; private set; } = true;
+
         public PaintCanvas()
         {
-            this.DoubleBuffered = true;
-            this.BackColor = Color.White;
-            this.MouseDown += CanvasControl_MouseDown;
-            this.MouseMove += CanvasControl_MouseMove;
-            this.MouseUp += CanvasControl_MouseUp;
-            this.Paint += CanvasControl_Paint;
-            this.KeyDown += CanvasControl_KeyDown;
-            this.MouseWheel += CanvasControl_MouseWheel;
-            this.MouseEnter += CanvasControl_MouseEnter;
-            this.MouseLeave += CanvasControl_MouseLeave;
-            this.Click += CanvasControl_Click;
+            DoubleBuffered = true;
+            AutoScroll = false;
+            BackColor = Color.White;
+            MouseDown += CanvasControl_MouseDown;
+            MouseMove += CanvasControl_MouseMove;
+            MouseUp += CanvasControl_MouseUp;
+            Paint += CanvasControl_Paint;
+            KeyDown += CanvasControl_KeyDown;
+            MouseWheel += CanvasControl_MouseWheel;
+            MouseEnter += CanvasControl_MouseEnter;
+            MouseLeave += CanvasControl_MouseLeave;
+            Click += CanvasControl_Click;
             SetBrushColorFromAppSettings();
         }
 
@@ -93,14 +96,14 @@ namespace MapGenerator.Components
         private void CanvasControl_MouseEnter(object? sender, EventArgs e)
         {
             isMouseInControl = true;
-            this.Invalidate();
+            Invalidate();
         }
 
         // 添加鼠标离开事件处理
         private void CanvasControl_MouseLeave(object? sender, EventArgs e)
         {
             isMouseInControl = false;
-            this.Invalidate();
+            Invalidate();
         }
 
         private void CanvasControl_MouseDown(object? sender, MouseEventArgs e)
@@ -111,7 +114,14 @@ namespace MapGenerator.Components
 
             isDrawing = true;
             currentPath = new List<Point>();
-            currentPath.Add(e.Location);
+
+            // 转换鼠标位置到原始坐标系
+            Point originalPoint = new Point(
+                (int)(e.Location.X / _zoomScale),
+                (int)(e.Location.Y / _zoomScale)
+            );
+
+            currentPath.Add(originalPoint);
 
             if (!isMaskMode)
             {
@@ -129,101 +139,54 @@ namespace MapGenerator.Components
 
         private void CanvasControl_MouseMove(object? sender, MouseEventArgs e)
         {
+            // 存储实际的鼠标位置用于显示
             lastMousePosition = e.Location;
 
-            // 更新装饰模式的鼠标位置
+            // 计算原始坐标系中的位置（反缩放）
+            Point originalPoint = new Point(
+                (int)(e.Location.X / _zoomScale),
+                (int)(e.Location.Y / _zoomScale)
+            );
+
+            // 装饰模式下使用缩放后的位置
             if (_decoratorMode)
             {
                 _currentMousePos = e.Location;
             }
 
-            this.Invalidate();
-
             if (isDrawing)
             {
-                currentPath.Add(e.Location);
-                this.Invalidate();
+                // 使用原始坐标系的位置
+                currentPath.Add(originalPoint);
             }
 
+            Invalidate();
             DrawCursor();
         }
-
-        void DrawCursor()
-        {
-            // 如果是装饰模式，使用系统十字光标
-            if (_decoratorMode)
-            {
-                Cursor.Dispose();
-                this.Cursor = Cursors.Cross;
-                return;
-            }
-
-            if (!brushSizeChanged)
-            {
-                return;
-            }
-
-            brushSizeChanged = false;
-
-            // 计算圆形光标的直径
-            int diameter = brushSize;
-
-            Cursor.Dispose();
-
-            // 创建位图，确保圆形能够完整显示
-            using (Bitmap cursorBitmap = new Bitmap(diameter, diameter))
-            {
-                // 使用Graphics对象绘制位图
-                using (Graphics g = Graphics.FromImage(cursorBitmap))
-                {
-                    // 启用抗锯齿，使光标边缘更平滑
-                    g.SmoothingMode = SmoothingMode.AntiAlias;
-
-                    // 清除背景为透明
-                    g.Clear(Color.Transparent);
-
-                    // 创建一个黑色的画笔
-                    using (Pen pen = new Pen(Color.Black, 1))
-                    {
-                        // 绘制圆形，直径为brushSize
-                        g.DrawEllipse(pen, 0, 0, diameter - 1, diameter - 1);
-                    }
-                }
-
-                // 从位图创建光标并设置为当前窗口的光标
-                try
-                {
-                    IntPtr hIcon = cursorBitmap.GetHicon();
-                    Cursor = new Cursor(hIcon);
-                }
-                catch
-                {
-                    // 处理异常，例如使用默认光标
-                    Cursor = Cursors.Default;
-                }
-            }
-        }
-
 
         private void CanvasControl_MouseUp(object? sender, MouseEventArgs e)
         {
             if (isDrawing && currentPath.Count > 1)
             {
                 Color pathColor = isMaskMode ? maskColor : currentBrushColor;
-
-                drawingPaths.Add(new DrawingPathInfo
+                // 只在普通绘画模式下记录drawingPaths
+                if (!isMaskMode && !_decoratorMode)
                 {
-                    Path = currentPath,
-                    Color = pathColor,
-                    BrushSize = brushSize
-                });
-
+                    drawingPaths.Add(new DrawingPathInfo
+                    {
+                        Path = currentPath,
+                        Color = pathColor,
+                        BrushSize = brushSize
+                    });
+                }
                 // 如果是在涂抹模式下，在maskLayer上绘制
                 if (isMaskMode && maskLayer != null)
                 {
+                    // 保存撤销快照
+                    maskUndoStack.Add(new Bitmap(maskLayer));
                     using (Graphics g = Graphics.FromImage(maskLayer))
                     {
-                        // 设置抗锯齿
+                        // 设置抗锯齿和高质量绘制
                         g.SmoothingMode = SmoothingMode.AntiAlias;
                         g.InterpolationMode = InterpolationMode.HighQualityBicubic;
                         g.PixelOffsetMode = PixelOffsetMode.HighQuality;
@@ -253,107 +216,126 @@ namespace MapGenerator.Components
             e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
             e.Graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
+            // 获取要绘制的区域尺寸
+            int drawWidth = (int)(originSize[0] * _zoomScale);
+            int drawHeight = (int)(originSize[1] * _zoomScale);
+
             // 首先绘制背景图像（如果有）
             if (backgroundImage != null)
             {
-                e.Graphics.DrawImage(backgroundImage, 0, 0, this.Width, this.Height);
+                e.Graphics.DrawImage(backgroundImage, 0, 0, drawWidth, drawHeight);
             }
 
-            // 绘制所有绘图路径，但如果处于遮罩模式则只绘制非遮罩路径
+            // 绘制所有绘图路径
             foreach (var pathInfo in drawingPaths)
             {
                 if (!isMaskMode || pathInfo.Color != maskColor)
                 {
-                    using (Pen pen = new Pen(pathInfo.Color, pathInfo.BrushSize))
+                    using (Pen pen = new Pen(pathInfo.Color, pathInfo.BrushSize * _zoomScale))
                     {
-                        // 设置线条端点和连接样式，以提高平滑度
                         pen.StartCap = LineCap.Round;
                         pen.EndCap = LineCap.Round;
                         pen.LineJoin = LineJoin.Round;
 
                         if (pathInfo.Path.Count > 1)
                         {
-                            e.Graphics.DrawLines(pen, pathInfo.Path.ToArray());
+                            // 转换路径点为缩放后的坐标
+                            Point[] scaledPoints = pathInfo.Path.Select(p => new Point(
+                                (int)(p.X * _zoomScale),
+                                (int)(p.Y * _zoomScale)
+                            )).ToArray();
+
+                            e.Graphics.DrawLines(pen, scaledPoints);
                         }
                     }
                 }
             }
 
             // 如果当前正在绘制，绘制当前路径
-            using (Pen pen = new Pen(isMaskMode ? maskColor : currentBrushColor, brushSize))
+            if (isDrawing && currentPath.Count > 1)
             {
-                // 设置线条端点和连接样式，以提高平滑度
-                pen.StartCap = LineCap.Round;
-                pen.EndCap = LineCap.Round;
-                pen.LineJoin = LineJoin.Round;
-
-                if (isDrawing && currentPath.Count > 1)
+                using (Pen pen = new Pen(isMaskMode ? maskColor : currentBrushColor, brushSize * _zoomScale))
                 {
-                    e.Graphics.DrawLines(pen, currentPath.ToArray());
+                    pen.StartCap = LineCap.Round;
+                    pen.EndCap = LineCap.Round;
+                    pen.LineJoin = LineJoin.Round;
+
+                    // 转换当前路径点为缩放后的坐标
+                    Point[] scaledPoints = currentPath.Select(p => new Point(
+                        (int)(p.X * _zoomScale),
+                        (int)(p.Y * _zoomScale)
+                    )).ToArray();
+
+                    e.Graphics.DrawLines(pen, scaledPoints);
                 }
             }
 
             // 如果有遮罩图层并且处于遮罩模式，半透明显示遮罩
             if (isMaskMode && maskLayer != null)
             {
-                // 创建半透明色彩用于显示遮罩
                 ColorMatrix matrix = new ColorMatrix();
-                matrix.Matrix33 = maskOpacity; // 设置透明度
+                matrix.Matrix33 = maskOpacity;
                 using (ImageAttributes attributes = new ImageAttributes())
                 {
                     attributes.SetColorMatrix(matrix);
-                    // 绘制遮罩图层
-                    Rectangle rect = new Rectangle(0, 0, this.Width, this.Height);
-                    e.Graphics.DrawImage(maskLayer, rect, 0, 0, maskLayer.Width, maskLayer.Height, GraphicsUnit.Pixel, attributes);
+                    Rectangle destRect = new Rectangle(0, 0, drawWidth, drawHeight);
+                    Rectangle sourceRect = new Rectangle(0, 0, maskLayer.Width, maskLayer.Height);
+                    e.Graphics.DrawImage(maskLayer, destRect,
+                        sourceRect.X, sourceRect.Y, sourceRect.Width, sourceRect.Height,
+                        GraphicsUnit.Pixel, attributes);
                 }
             }
 
-            // 绘制所有已添加的装饰项
-            foreach (var item in _decoratorItems)
+            // 绘制所有装饰项
+            foreach (var decorator in _decoratorItems)
             {
-                int x = item.Location.X - item.Size / 2;
-                int y = item.Location.Y - item.Size / 2;
-                
-                e.Graphics.DrawImage(item.Image, 
-                    new Rectangle(x, y, item.Size, item.Size),
-                    0, 0, item.Image.Width, item.Image.Height,
+                // 计算缩放后的位置和大小
+                int scaledX = (int)(decorator.Location.X * _zoomScale) - (int)(decorator.Size * _zoomScale) / 2;
+                int scaledY = (int)(decorator.Location.Y * _zoomScale) - (int)(decorator.Size * _zoomScale) / 2;
+                int scaledSize = (int)(decorator.Size * _zoomScale);
+
+                e.Graphics.DrawImage(decorator.Image,
+                    new Rectangle(scaledX, scaledY, scaledSize, scaledSize),
+                    0, 0, decorator.Image.Width, decorator.Image.Height,
                     GraphicsUnit.Pixel);
             }
-            
+
             // 如果处于装饰模式，绘制当前装饰预览
             if (_decoratorMode && _currentDecorator != null && !_currentMousePos.IsEmpty)
             {
-                int x = _currentMousePos.X - _decoratorSize / 2;
-                int y = _currentMousePos.Y - _decoratorSize / 2;
-                
-                // 半透明绘制
+                // 计算预览位置（相对于鼠标位置，无需反缩放，因为鼠标位置已经是屏幕坐标）
+                int scaledX = _currentMousePos.X - _decoratorSize / 2;
+                int scaledY = _currentMousePos.Y - _decoratorSize / 2;
+
                 ColorMatrix cm = new ColorMatrix();
-                cm.Matrix33 = 0.5f; // 设置透明度为50%
-                ImageAttributes imgAttr = new ImageAttributes();
-                imgAttr.SetColorMatrix(cm);
-                
-                e.Graphics.DrawImage(_currentDecorator,
-                    new Rectangle(x, y, _decoratorSize, _decoratorSize),
-                    0, 0, _currentDecorator.Width, _currentDecorator.Height,
-                    GraphicsUnit.Pixel,
-                    imgAttr);
+                cm.Matrix33 = 0.5f; // 半透明
+                using (ImageAttributes imgAttr = new ImageAttributes())
+                {
+                    imgAttr.SetColorMatrix(cm);
+                    e.Graphics.DrawImage(_currentDecorator,
+                        new Rectangle(scaledX, scaledY, _decoratorSize, _decoratorSize),
+                        0, 0, _currentDecorator.Width, _currentDecorator.Height,
+                        GraphicsUnit.Pixel,
+                        imgAttr);
+                }
             }
 
             // 显示鼠标位置的像素坐标
             if (isMouseInControl)
             {
-                string positionText = $"X: {lastMousePosition.X}, Y: {lastMousePosition.Y}";
-                e.Graphics.DrawString(positionText, Font, Brushes.Black, new PointF(lastMousePosition.X + 5, lastMousePosition.Y + 5));
+                float actualX = lastMousePosition.X / _zoomScale;
+                float actualY = lastMousePosition.Y / _zoomScale;
+                string positionText = $"X: {(int)actualX}, Y: {(int)actualY}";
+                e.Graphics.DrawString(positionText, Font, Brushes.Black, lastMousePosition.X + 5, lastMousePosition.Y + 5);
             }
 
-            // 如果是遮罩模式，显示提示
+            // UI提示
             if (isMaskMode)
             {
-                string modeText = "遮罩模式：选择要重绘的区域";
+                string modeText = "遮罩模式：绘制遮罩区域";
                 e.Graphics.DrawString(modeText, new Font("Arial", 12, FontStyle.Bold), Brushes.Red, new PointF(10, 10));
             }
-            
-            // 如果是装饰模式，显示提示
+
             if (_decoratorMode)
             {
                 string modeText = "装饰模式：点击添加装饰，滚轮调整大小";
@@ -384,19 +366,99 @@ namespace MapGenerator.Components
 
                 DrawCursor();
             }
-            
-            this.Invalidate();
+
+            Invalidate();
         }
 
         private void CanvasControl_KeyDown(object? sender, KeyEventArgs e)
         {
             if (e.Control && e.KeyCode == Keys.Z) // 按下 Ctrl + Z 进行撤销操作
             {
+                if (DecorateMode)
+                {
+                    if (_decoratorItems.Count > 0)
+                        _decoratorItems.RemoveAt(_decoratorItems.Count - 1);
+                    Invalidate();
+                    return;
+                }
+
+                if (isMaskMode && maskUndoStack.Count > 0)
+                {
+                    // 撤销遮罩
+                    maskLayer?.Dispose();
+                    maskLayer = new Bitmap(maskUndoStack[maskUndoStack.Count - 1]);
+                    maskUndoStack[maskUndoStack.Count - 1].Dispose();
+                    maskUndoStack.RemoveAt(maskUndoStack.Count - 1);
+                    Invalidate();
+                    return;
+                }
+
                 if (drawingPaths.Count > 0)
                 {
                     // 移除最后添加的绘制路径（最上层）
                     drawingPaths.RemoveAt(drawingPaths.Count - 1);
-                    this.Invalidate();
+                    Invalidate();
+                }
+            }
+        }
+
+        private void DrawCursor()
+        {
+            if (!CanChangeCursorIcon)
+            {
+                return;
+            }
+
+            // 如果是装饰模式，使用系统十字光标
+            if (_decoratorMode)
+            {
+                Cursor.Dispose();
+                Cursor = Cursors.Cross;
+                return;
+            }
+
+            if (!brushSizeChanged)
+            {
+                return;
+            }
+
+            brushSizeChanged = false;
+
+            // 计算圆形光标的直径
+            int diameter = brushSize;
+
+            Cursor.Dispose();
+
+            // 创建位图，确保圆形能够完整显示
+            using (Bitmap cursorBitmap = new Bitmap(diameter, diameter))
+            {
+                // 使用Graphics对象绘制位图
+                using (Graphics g = Graphics.FromImage(cursorBitmap))
+                {
+                    // 启用抗锯齿，使光标边缘更平滑
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                    // 清除背景为透明
+                    g.Clear(Color.Transparent);
+
+                    // 创建一个黑色的画笔
+                    using (Pen pen = new Pen(Color.Red, 2))
+                    {
+                        // 绘制圆形，直径为brushSize
+                        g.DrawEllipse(pen, 0, 0, diameter - 1, diameter - 1);
+                    }
+                }
+
+                // 从位图创建光标并设置为当前窗口的光标
+                try
+                {
+                    IntPtr hIcon = cursorBitmap.GetHicon();
+                    Cursor = new Cursor(hIcon);
+                }
+                catch
+                {
+                    // 处理异常，例如使用默认光标
+                    Cursor = Cursors.Default;
                 }
             }
         }
@@ -404,15 +466,16 @@ namespace MapGenerator.Components
         // 设置画布的尺寸
         public void SetCanvasSize(int width, int height)
         {
-            this.Size = new Size(width, height);
+            originSize = [width, height];
+            Size = new Size(width, height);
 
             // 如果已经有遮罩层，也要调整大小
             if (isMaskMode && (maskLayer == null || maskLayer.Width != width || maskLayer.Height != height))
             {
-                CreateMaskLayer(width, height);
+                CreateMaskLayer();
             }
 
-            this.Invalidate();
+            Invalidate();
         }
 
         private void SetBrushColorFromAppSettings()
@@ -424,7 +487,7 @@ namespace MapGenerator.Components
         {
             currentBrushType = brushType;
             SetBrushColorFromAppSettings();
-            this.Invalidate();
+            Invalidate();
         }
 
         // 设置背景图像
@@ -444,7 +507,7 @@ namespace MapGenerator.Components
             currentPath.Clear();
 
             // 刷新画布
-            this.Invalidate();
+            Invalidate();
         }
 
         // 设置遮罩模式
@@ -455,11 +518,21 @@ namespace MapGenerator.Components
             // 如果启用遮罩模式，创建遮罩图层
             if (enable && maskLayer == null)
             {
-                CreateMaskLayer(this.Width, this.Height);
+                CreateMaskLayer();
+            }
+            else
+            {
+                ClearMaskLayer();
             }
 
-            this.Invalidate();
+            if (!enable)
+            {
+                DoResetCursor();
+            }
+
+            Invalidate();
         }
+
 
         // 获取遮罩模式状态
         public bool IsInMaskMode()
@@ -467,17 +540,17 @@ namespace MapGenerator.Components
             return isMaskMode;
         }
 
+
         // 创建遮罩图层
-        private void CreateMaskLayer(int width, int height)
+        private void CreateMaskLayer()
         {
             // 释放旧的遮罩图层
             maskLayer?.Dispose();
 
-            // 创建新的遮罩图层，使用黑色背景（黑色表示不重绘区域）
-            maskLayer = new Bitmap(width, height);
+            // 使用原始尺寸创建新的遮罩图层
+            maskLayer = new Bitmap(originSize[0], originSize[1]);
             using (Graphics g = Graphics.FromImage(maskLayer))
             {
-                // 启用抗锯齿
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.Clear(Color.Black);
             }
@@ -494,8 +567,16 @@ namespace MapGenerator.Components
                     g.SmoothingMode = SmoothingMode.AntiAlias;
                     g.Clear(Color.Black);
                 }
-                this.Invalidate();
+                Invalidate();
             }
+
+            foreach (var maskBmp in maskUndoStack)
+            {
+                maskBmp.Dispose();
+            }
+            maskUndoStack.Clear();
+            maskLayer?.Dispose();
+            maskLayer = null;
         }
 
         // 获取遮罩图层
@@ -503,166 +584,33 @@ namespace MapGenerator.Components
         {
             if (maskLayer == null)
             {
-                CreateMaskLayer(this.Width, this.Height);
+                CreateMaskLayer();
             }
 
             // 确保maskLayer不为null后再创建新的Bitmap
             if (maskLayer != null)
             {
-                if (!isMaskMode)
-                    return new Bitmap(maskLayer); // 返回副本以避免资源问题
-                else
-                    return ConverToMask();
+                var oldMask = maskLayer;
+                //消除缩放影响
+                using (Graphics g = Graphics.FromImage(maskLayer))
+                {
+                    // 启用高质量插值模式
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                    // 绘制缩放后的遮罩
+                    g.DrawImage(oldMask,
+                        new Rectangle(0, 0, originSize[0], originSize[1]),
+                        new Rectangle(0, 0, oldMask.Width, oldMask.Height),
+                        GraphicsUnit.Pixel);
+                }
+                return new Bitmap(maskLayer); // 返回副本以避免资源问题
             }
 
             // 如果maskLayer仍然为null，返回一个新的空白Bitmap
-            return new Bitmap(this.Width, this.Height);
+            return new Bitmap(Width, Height);
         }
 
-        private Bitmap ConverToMask()
-        {
-            try
-            {
-                if (maskLayer == null)
-                {
-                    return new Bitmap(this.Width, this.Height);
-                }
-
-                // 创建一个新的RGBA位图
-                Bitmap maskBitmap = new Bitmap(maskLayer.Width, maskLayer.Height, PixelFormat.Format32bppArgb);
-
-                // 锁定两个位图的位图数据进行高效处理
-                BitmapData sourceData = maskLayer.LockBits(
-                    new Rectangle(0, 0, maskLayer.Width, maskLayer.Height),
-                    ImageLockMode.ReadOnly,
-                    maskLayer.PixelFormat);
-
-                BitmapData targetData = maskBitmap.LockBits(
-                    new Rectangle(0, 0, maskBitmap.Width, maskBitmap.Height),
-                    ImageLockMode.WriteOnly,
-                    PixelFormat.Format32bppArgb);
-
-                try
-                {
-                    unsafe
-                    {
-                        byte* sourcePtr = (byte*)sourceData.Scan0;
-                        byte* targetPtr = (byte*)targetData.Scan0;
-
-                        int sourceBytesPerPixel = Image.GetPixelFormatSize(sourceData.PixelFormat) / 8;
-                        int targetBytesPerPixel = 4; // 32bpp = 4 bytes per pixel
-
-                        for (int y = 0; y < maskLayer.Height; y++)
-                        {
-                            byte* currentSourceLine = sourcePtr + (y * sourceData.Stride);
-                            byte* currentTargetLine = targetPtr + (y * targetData.Stride);
-
-                            for (int x = 0; x < maskLayer.Width; x++)
-                            {
-                                byte* currentSourcePixel = currentSourceLine + (x * sourceBytesPerPixel);
-                                byte* currentTargetPixel = currentTargetLine + (x * targetBytesPerPixel);
-
-                                // 获取源位图像素亮度 (R+G+B)/3
-                                byte brightness = (byte)((currentSourcePixel[0] + currentSourcePixel[1] + currentSourcePixel[2]) / 3);
-
-                                // 设置目标像素
-                                currentTargetPixel[0] = 255; // B
-                                currentTargetPixel[1] = 255; // G
-                                currentTargetPixel[2] = 255; // R
-
-                                // A通道: 白色区域变为透明(0)，黑色区域保持不透明(255)
-                                // 255 - brightness实现了这种反转
-                                currentTargetPixel[3] = (byte)(255 - brightness);
-                            }
-                        }
-                    }
-                }
-                finally
-                {
-                    // 解锁位图数据
-                    maskLayer.UnlockBits(sourceData);
-                    maskBitmap.UnlockBits(targetData);
-                }
-
-                return maskBitmap;
-            }
-            catch (Exception ex)
-            {
-                // 异常情况下返回空白位图
-                Console.WriteLine($"转换遮罩时出错: {ex.Message}");
-                return new Bitmap(this.Width, this.Height);
-            }
-        }
-
-        // Render the canvas drawing to a bitmap
-        public Bitmap RenderToBitmap()
-        {
-            // Create a bitmap with the same size as the canvas
-            Bitmap bitmap = new Bitmap(this.Width, this.Height);
-
-            // Create a graphics context from the bitmap
-            using (Graphics g = Graphics.FromImage(bitmap))
-            {
-                // 启用抗锯齿
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                // Clear with white background
-                g.Clear(this.BackColor);
-
-                // 首先绘制背景图像（如果有）
-                if (backgroundImage != null)
-                {
-                    g.DrawImage(backgroundImage, 0, 0, this.Width, this.Height);
-                }
-
-                // Draw all completed paths
-                foreach (var pathInfo in drawingPaths)
-                {
-                    using (Pen pen = new Pen(pathInfo.Color, pathInfo.BrushSize))
-                    {
-                        // 设置线条端点和连接样式
-                        pen.StartCap = LineCap.Round;
-                        pen.EndCap = LineCap.Round;
-                        pen.LineJoin = LineJoin.Round;
-
-                        if (pathInfo.Path.Count > 1)
-                        {
-                            g.DrawLines(pen, pathInfo.Path.ToArray());
-                        }
-                    }
-                }
-
-                // Draw current path if we're in the middle of drawing
-                using (Pen pen = new Pen(currentBrushColor, brushSize))
-                {
-                    // 设置线条端点和连接样式
-                    pen.StartCap = LineCap.Round;
-                    pen.EndCap = LineCap.Round;
-                    pen.LineJoin = LineJoin.Round;
-
-                    if (isDrawing && currentPath.Count > 1)
-                    {
-                        g.DrawLines(pen, currentPath.ToArray());
-                    }
-                }
-                
-                // 绘制所有装饰
-                foreach (var item in _decoratorItems)
-                {
-                    int x = item.Location.X - item.Size / 2;
-                    int y = item.Location.Y - item.Size / 2;
-                    
-                    g.DrawImage(item.Image, 
-                        new Rectangle(x, y, item.Size, item.Size),
-                        0, 0, item.Image.Width, item.Image.Height,
-                        GraphicsUnit.Pixel);
-                }
-            }
-
-            return bitmap;
-        }
 
         // 清空所有绘图内容
         public void ClearDrawing()
@@ -687,21 +635,26 @@ namespace MapGenerator.Components
             if (maskLayer != null)
             {
                 maskLayer.Dispose();
+                foreach (var maskBmp in maskUndoStack)
+                {
+                    maskBmp.Dispose();
+                }
+                maskUndoStack.Clear();
                 maskLayer = null;
             }
 
             // 重置遮罩模式
             isMaskMode = false;
-            
+
             // 清空装饰
             ClearDecorators();
 
             // 刷新画布显示
-            this.Invalidate();
+            Invalidate();
         }
-        
+
         // 装饰模式相关方法
-        
+
         // 启用装饰模式
         public void SetDecoratorMode(bool enabled, Image? decoratorImage = null, string decoratorName = "")
         {
@@ -711,12 +664,12 @@ namespace MapGenerator.Components
 
             _decoratorMode = enabled;
             _currentDecorator = decoratorImage;
-            
+
             // 设置光标
             if (_decoratorMode && _currentDecorator != null)
             {
                 // 使用十字光标
-                this.Cursor = Cursors.Cross;
+                Cursor = Cursors.Cross;
                 _decoratorName = decoratorName;
             }
             else
@@ -726,7 +679,7 @@ namespace MapGenerator.Components
                 DrawCursor();
             }
 
-            this.Invalidate();
+            Invalidate();
         }
 
         // 清空所有装饰
@@ -737,14 +690,14 @@ namespace MapGenerator.Components
                 item.Image?.Dispose();
             }
             _decoratorItems.Clear();
-            this.Invalidate();
+            Invalidate();
         }
 
         // 设置装饰大小
         public void SetDecoratorSize(int size)
         {
             _decoratorSize = Math.Clamp(size, _minDecoratorSize, _maxDecoratorSize);
-            this.Invalidate();
+            Invalidate();
         }
 
         // 添加装饰到列表
@@ -752,15 +705,28 @@ namespace MapGenerator.Components
         {
             if (_currentDecorator != null)
             {
-                // 创建新的装饰项并添加到列表
-                DecoratorItem item = new DecoratorItem(
-                    _currentDecorator.Clone() as Image,
-                    location,
-                    _decoratorSize,
-                    _decoratorName);
-                
-                _decoratorItems.Add(item);
-                this.Invalidate();
+                // 存储原始位置（反缩放）
+                Point originalLocation = new Point(
+                    (int)(location.X / _zoomScale),
+                    (int)(location.Y / _zoomScale)
+                );
+
+                // 存储原始大小（反缩放）
+                int originalSize = (int)(_decoratorSize / _zoomScale);
+
+                // 为显示列表创建装饰项
+                var imgDisplayClone = _currentDecorator.Clone() as Image;
+                if (imgDisplayClone == null) return;
+
+                DecoratorItem displayItem = new DecoratorItem(
+                    imgDisplayClone,
+                    originalLocation,  // 使用原始位置
+                    originalSize,  // 使用原始大小
+                    _decoratorName
+                );
+                _decoratorItems.Add(displayItem);
+
+                Invalidate();
             }
         }
 
@@ -769,7 +735,7 @@ namespace MapGenerator.Components
         {
             return _decoratorItems;
         }
-        
+
         // 检查是否处于装饰模式
         public bool IsInDecoratorMode()
         {
@@ -782,37 +748,142 @@ namespace MapGenerator.Components
             // 检查是否有绘制的路径
             if (drawingPaths.Count > 0)
                 return false;
-            
+
             // 检查是否有正在绘制的路径
             if (isDrawing && currentPath.Count > 1)
                 return false;
-            
+
             // 检查是否有背景图像
             if (backgroundImage != null)
                 return false;
-            
+
             // 检查是否有装饰物
             if (_decoratorItems.Count > 0)
                 return false;
-            
+
             // 所有检查都通过，画布为空
             return true;
         }
+
 
         // 锁定画布，阻止绘制操作
         public void LockCanvas()
         {
             _isLocked = true;
-            this.Invalidate();
+            Invalidate();
         }
+
 
         // 解锁画布，允许绘制操作
         public void UnlockCanvas()
         {
             _isLocked = false;
-            this.Invalidate();
+            Invalidate();
         }
 
-   
+
+        internal IEnumerable<string> GetBrushNames()
+        {
+            IEnumerable<string> names = new List<string>();
+            foreach (var idx in drawedBrush)
+            {
+                names = names.Append(AppSettings.GetBrush(idx).Name);
+            }
+
+            return names;
+        }
+
+        internal void CurserIconCanChange(bool flag)
+        {
+            CanChangeCursorIcon = flag;
+            if (!flag)
+            {
+                DoResetCursor();
+            }
+        }
+
+        private void DoResetCursor()
+        {
+            Cursor.Dispose();
+            Cursor = Cursors.Default;
+        }
+
+        /// <summary>
+        /// 设置画布缩放比例
+        /// </summary>
+        public void SetZoomScale(float scale)
+        {
+            _zoomScale = scale;
+
+            Size = new Size((int)(originSize[0] * scale), (int)(originSize[1] * scale));
+
+            Invalidate();
+        }
+
+        /// <summary>
+        /// 获取当前缩放比例
+        /// </summary>
+        /// <returns>当前缩放比例</returns>
+        public float GetZoomScale()
+        {
+            return _zoomScale;
+        }
+
+        // 渲染实际的绘制结果，zoomscale无关
+        public Bitmap RenderToBitmap()
+        {
+            // 创建一个与画布原始尺寸相同大小的位图
+            Bitmap bitmap = new Bitmap(originSize[0], originSize[1]);
+
+            // 从位图创建图形上下文
+            using (Graphics g = Graphics.FromImage(bitmap))
+            {
+                // 启用抗锯齿
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                // 使用白色背景清除
+                g.Clear(BackColor);
+
+                // 首先绘制背景图像（如果有）
+                if (backgroundImage != null)
+                {
+                    g.DrawImage(backgroundImage, 0, 0, originSize[0], originSize[1]);
+                }
+
+                // 使用原始路径绘制所有完成的路径
+                foreach (var pathInfo in drawingPaths)
+                {
+                    using (Pen pen = new Pen(pathInfo.Color, pathInfo.BrushSize))
+                    {
+                        // 设置线条端点和连接样式
+                        pen.StartCap = LineCap.Round;
+                        pen.EndCap = LineCap.Round;
+                        pen.LineJoin = LineJoin.Round;
+
+                        if (pathInfo.Path.Count > 1)
+                        {
+                            g.DrawLines(pen, pathInfo.Path.ToArray());
+                        }
+                    }
+                }
+
+                // 绘制所有装饰（使用原始数据）
+                foreach (var item in originalDecorators)
+                {
+                    int x = item.Location.X - item.Size / 2;
+                    int y = item.Location.Y - item.Size / 2;
+
+                    g.DrawImage(item.Image,
+                        new Rectangle(x, y, item.Size, item.Size),
+                        0, 0, item.Image.Width, item.Image.Height,
+                        GraphicsUnit.Pixel);
+                }
+            }
+
+            return bitmap;
+        }
+
     }
 }

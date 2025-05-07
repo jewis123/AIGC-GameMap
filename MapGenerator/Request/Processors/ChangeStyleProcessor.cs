@@ -2,9 +2,9 @@ using System.Text.Json;
 
 namespace MapGenerator.Request.ComfyUI
 {
-    public class StyleChangeProcessor:BaseProcessor
+    public class StyleChangeProcessor : BaseProcessor
     {
-        
+
         private readonly string _workflowPath;
 
         private readonly Dictionary<string, string> _styleMapping = new Dictionary<string, string>(){
@@ -12,7 +12,7 @@ namespace MapGenerator.Request.ComfyUI
         }
 ;
 
-        public StyleChangeProcessor(ref ComfyUIClient comfyClient):base(ref comfyClient)
+        public StyleChangeProcessor(ref ComfyUIClient comfyClient) : base(ref comfyClient)
         {
             // 将工作流 JSON 文件路径设置为工作流 JSON 文件位置
             _workflowPath = Path.Combine(AppSettings.WorkflowPath, "2dmap_changestyle.json");
@@ -25,16 +25,17 @@ namespace MapGenerator.Request.ComfyUI
         /// <param name="rawImagePath">原图</param>
         /// <param name="refImagePath">参考图</param>
         /// <param name="batchSize">生成数量</param>
-        /// <param name="pixcels">生成尺寸</param>
         /// <param name="style_key">风格图key</param>
         /// <returns></returns>
-        public async Task<string> Process(string prompt, string rawImagePath, string refImagePath, int batchSize, int[] pixcels, string style_key)
+        public async Task<string> Process(string prompt, string rawImagePath, string refImagePath, int batchSize, string style_key, IProgress<int> progress)
         {
             try
             {
                 // 先取消当前正在执行的任务，避免排队
                 await _comfyClient.CancelCurrentExecution();
 
+                //上传原图
+                progress.Report(10);
                 string uploadedRawImageName = string.Empty;
                 if (!string.IsNullOrEmpty(rawImagePath) && File.Exists(rawImagePath))
                 {
@@ -45,6 +46,9 @@ namespace MapGenerator.Request.ComfyUI
                         return string.Empty;
                     }
                 }
+
+                // 上传参考图像
+                progress.Report(20);
 
                 string uploadedRefImageName = string.Empty;
                 if (!string.IsNullOrEmpty(refImagePath) && File.Exists(refImagePath))
@@ -57,8 +61,8 @@ namespace MapGenerator.Request.ComfyUI
                     }
                 }
 
-                // 准备工作流
-                var modifiedWorkflow = await PrepareWorkflow(prompt, uploadedRawImageName, uploadedRefImageName, pixcels, batchSize, style_key);
+                progress.Report(30);
+                var modifiedWorkflow = await PrepareWorkflow(prompt, uploadedRawImageName, uploadedRefImageName, batchSize, style_key);
                 if (modifiedWorkflow == null)
                 {
                     return string.Empty;
@@ -78,8 +82,12 @@ namespace MapGenerator.Request.ComfyUI
                     return string.Empty;
                 }
 
+                LastPromptId = promptId;
+                LastNodeId = "149";
+
                 // 轮询等待结果
-                string resultImagePath = await _comfyClient.PollForResult(promptId, "149", pixcels[0]*pixcels[1]*batchSize/(512*512)); // SaveImage节点ID
+                progress.Report(40);
+                string resultImagePath = await _comfyClient.PollForResult(promptId, "149", batchSize); // SaveImage节点ID
 
                 if (string.IsNullOrEmpty(resultImagePath))
                 {
@@ -87,16 +95,17 @@ namespace MapGenerator.Request.ComfyUI
                     return string.Empty;
                 }
 
+
                 return resultImagePath;
             }
             catch (Exception ex)
             {
-               MessageBox.Show("处理图像时出错：" + ex.Message);
-               return null;
+                MessageBox.Show("处理图像时出错：" + ex.Message);
+                return string.Empty;
             }
         }
 
-        private async Task<Dictionary<string, object>?> PrepareWorkflow(string prompt, string uploadedImageName, string uploadedRefImageName, int[] pixcelSize, int batchSize, string style_key)
+        private async Task<Dictionary<string, object>?> PrepareWorkflow(string prompt, string uploadedImageName, string uploadedRefImageName, int batchSize, string style_key)
         {
             try
             {
@@ -186,23 +195,6 @@ namespace MapGenerator.Request.ComfyUI
                     }
                 }
 
-                var node185 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                workflow["185"].GetRawText());
-
-                if (node185 != null && node185.ContainsKey("inputs"))
-                {
-                    var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                        ((JsonElement)node185["inputs"]).GetRawText());
-
-                    if (inputs != null)
-                    {
-                        inputs["width"] = pixcelSize[0];
-                        inputs["height"] = pixcelSize[1];
-                        node185["inputs"] = inputs;
-                        modifiedWorkflow["185"] = node185;
-                    }
-                }
-
                 var node43 = JsonSerializer.Deserialize<Dictionary<string, object>>(
                 workflow["43"].GetRawText());
 
@@ -220,19 +212,19 @@ namespace MapGenerator.Request.ComfyUI
                 }
 
 
-                var node168 = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                    workflow["168"].GetRawText());
+                var node202 = JsonSerializer.Deserialize<Dictionary<string, object>>(
+                    workflow["202"].GetRawText());
 
-                if (node168 != null && node168.ContainsKey("inputs"))
+                if (node202 != null && node202.ContainsKey("inputs"))
                 {
                     var inputs = JsonSerializer.Deserialize<Dictionary<string, object>>(
-                        ((JsonElement)node168["inputs"]).GetRawText());
+                        ((JsonElement)node202["inputs"]).GetRawText());
 
                     if (inputs != null)
                     {
                         inputs["text"] = prompt;
-                        node168["inputs"] = inputs;
-                        modifiedWorkflow["168"] = node168;
+                        node202["inputs"] = inputs;
+                        modifiedWorkflow["202"] = node202;
                     }
                 }
 

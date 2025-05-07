@@ -26,25 +26,43 @@ namespace MapGenerator.Components
         public void SetImg(string imgPath, string label, int idx, int[]? width_height = null)
         {
             FilePath = imgPath;
-            try{
-                if(width_height != null){
+            try
+            {
+                if (width_height != null)
+                {
                     this.label.Width = this.bgColor.Width = width_height[0];
                     this.bgColor.Height = width_height[1];
-                }else{
-                    this.bgColor.Width =this.label.Width =this.bgColor.Height = 64;
+                }
+                else
+                {
+                    this.bgColor.Width = this.label.Width = this.bgColor.Height = 64;
                 }
                 this.label.Text = label;
-                this.bgColor.BackgroundImage = Image.FromFile(imgPath);
+                using (var srcImg = Image.FromFile(imgPath))
+                {
+                    // 按照_width or height 计算等比缩放后的尺寸
+                    var thumb = new Bitmap(this.bgColor.Width, this.bgColor.Height);
+                    using (var g = Graphics.FromImage(thumb))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.Clear(Color.Transparent);
+                        g.DrawImage(srcImg, 0, 0, thumb.Width, thumb.Height);
+                    }
+                    this.bgColor.BackgroundImage = (Image)thumb.Clone();
+                    thumb.Dispose();
+                }
                 this.Idx = idx;
-                
-            }catch{
+
+            }
+            catch
+            {
                 Console.Write("找不到资源: " + imgPath);
             }
         }
 
         public void SetBackground(bool selected)
         {
-            this.BackColor = selected ? Color.Yellow : Color.Gray;
+            this.BackColor = selected ? Color.Yellow : Color.White;
         }
 
         public Image GetImage()

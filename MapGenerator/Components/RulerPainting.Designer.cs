@@ -34,8 +34,7 @@
             // 
             // RulerPainting
             // 
-            AutoScaleDimensions = new SizeF(7F, 17F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.None;
             AutoScroll = true;
             Name = "RulerPainting";
             ResumeLayout(false);

@@ -9,19 +9,22 @@ namespace MapGenerator.Wnds
     {
         private ComfyUIClient _comfyUIClient;
         private StyleChangeProcessor _changeStyleProcessor;
+        private RemoveProcessor _removeProcessor;
         private int selectRawImgIdx;
         private RulerPainting? curPaintCav => MainViewTab.SelectedTab.Controls[0] as RulerPainting;
         private TabPage? curTab => MainViewTab.SelectedTab;
 
         internal enum OperationType
         {
-            StyleChange = 0,
-            RegionRepaint = 1,
-            RegionRemove = 2,
-            RegionPick = 3
+            None = 0,
+            StyleChange = 1,
+            RegionRepaint = 2,
+            RegionRemove = 3,
         }
         public string RecordDirName { get; set; }
-        private OperationType operationType = OperationType.StyleChange;
+        private OperationType operationType = OperationType.None;
+        private ProgressForm _progressForm;
+        private RulerPainting? lastPaintCav;
 
         private int SelectedRefIdx { get; set; } = -1;
 
@@ -46,18 +49,109 @@ namespace MapGenerator.Wnds
 
             InitProcessors();
 
+            _progressForm = new Components.ProgressForm();
+
             // 添加窗体关闭事件
             this.FormClosing += StyleChangeWnd_FormClosing;
 
             this.StartPosition = FormStartPosition.CenterScreen;
+
+            // 搜索框事件绑定
+            this.refSearch.TextChanged += (s, e) => FilterRefLayout();
+            this.templateSearch.TextChanged += (s, e) => FilterTemplateLayout();
+            this.rawSearch.TextChanged += (s, e) => FilterRawImageLayout();
+            this.recordSearch.TextChanged += (s, e) => FilterRecordsLayout();
+
+            // 监听tab切换，切换时所有RulerPainting退出遮罩模式
+            this.MainViewTab.SelectedIndexChanged += MainViewTab_SelectedIndexChanged_MaskReset;
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            // 只对refLayout开启双缓冲
+            typeof(Panel).InvokeMember("DoubleBuffered",
+                System.Reflection.BindingFlags.SetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                null, refLayout, new object[] { true });
+        }
+
+        // 筛选特征参考图片
+        private void FilterRefLayout()
+        {
+            string keyword = refSearch.Text.Trim().ToLower();
+            foreach (var ctrl in refLayout.Controls)
+            {
+                if (ctrl is CheckableImageItem item)
+                {
+                    string name = Path.GetFileNameWithoutExtension(item.FilePath).ToLower();
+                    item.Visible = string.IsNullOrEmpty(keyword) || name.Contains(keyword);
+                }
+            }
+        }
+
+        // 筛选风格模板图片
+        private void FilterTemplateLayout()
+        {
+            string keyword = templateSearch.Text.Trim().ToLower();
+            foreach (var ctrl in templateLayout.Controls)
+            {
+                if (ctrl is CheckableImageItem item)
+                {
+                    string name = Path.GetFileNameWithoutExtension(item.FilePath).ToLower();
+                    item.Visible = string.IsNullOrEmpty(keyword) || name.Contains(keyword);
+                }
+            }
+        }
+
+        // 筛选原始图片
+        private void FilterRawImageLayout()
+        {
+            string keyword = rawSearch.Text.Trim().ToLower();
+            foreach (var ctrl in rawImageLayout.Controls)
+            {
+                if (ctrl is IconItemControl_V item)
+                {
+                    string name = Path.GetFileNameWithoutExtension(item.FilePath).ToLower();
+                    item.Visible = string.IsNullOrEmpty(keyword) || name.Contains(keyword);
+                }
+            }
+        }
+
+        // 筛选记录图片
+        private void FilterRecordsLayout()
+        {
+            string keyword = recordSearch.Text.Trim().ToLower();
+            foreach (var ctrl in recordsLayout.Controls)
+            {
+                if (ctrl is IconItemControl_V item)
+                {
+                    string name = Path.GetFileNameWithoutExtension(item.FilePath).ToLower();
+                    item.Visible = string.IsNullOrEmpty(keyword) || name.Contains(keyword);
+                }
+            }
         }
 
         private void Enter_Load(object sender, EventArgs e)
         {
-            InitializeTemplateListView();
             InitializeReferenceListView();
+            InitializeTemplateListView();
             InitializeProjectRawListView();
             InitializeChangedListView();
+            Utility.NewPaintingTab(ref MainViewTab, true);
+
+            lastPaintCav = curPaintCav;
+
+            MainViewTab.SelectedIndexChanged += (sender, e) =>
+            {
+                if (lastPaintCav != null)
+                {
+                    lastPaintCav.MaskModeExited -= RulerPainting_MaskModeExited;
+                }
+
+                lastPaintCav = curPaintCav;
+                lastPaintCav.MaskModeExited += RulerPainting_MaskModeExited;
+            };
+
 
             //只有需要涂抹区域时才解锁
             if (curPaintCav != null)
@@ -65,11 +159,22 @@ namespace MapGenerator.Wnds
                 curPaintCav.LockCanvas();
             }
 
-
             this.tabs.SelectedIndexChanged += tabs_SelectedIndexChanged;
             this.PromptBox.Hint = "输入提示词(可不填)，对生图有20%影响力....";
+            this.refSearch.Hint = "图片筛选..";
+            this.templateSearch.Hint = "图片筛选..";
+            this.rawSearch.Hint = "图片筛选..";
+            this.recordSearch.Hint = "图片筛选..";
+        }
 
-            genSize.SetLabel("生成尺寸");
+        private void RulerPainting_MaskModeExited(object? sender, EventArgs e)
+        {
+            curPaintCav?.LockCanvas();
+        }
+
+        private void RulerPainting_DecoratorModeExited(object? sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private void tabs_SelectedIndexChanged(object? sender, EventArgs e)
@@ -90,15 +195,14 @@ namespace MapGenerator.Wnds
         private void InitProcessors()
         {
             _comfyUIClient = new ComfyUIClient();
-
             _changeStyleProcessor = new StyleChangeProcessor(ref _comfyUIClient);
+            _removeProcessor = new RemoveProcessor(ref _comfyUIClient);
         }
 
         private void InitializeProjectRawListView()
         {
-            Utility.LoadIconItemControl(true,
-            ((List<string>)[.. Utility.GetImagePathsFromFolder(AppSettings.ProjectRawImgPath)]).ToArray(), OnClickRawImage, ref rawImageLayout, [120, 120]);
-
+            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.ProjectPreloadImgPath)];
+            Utility.LoadIconItemControl(true, imagePaths.ToArray(), OnClickRawImage, ref rawImageLayout, [120, 120]);
         }
 
         private void InitializeReferenceListView()
@@ -121,7 +225,7 @@ namespace MapGenerator.Wnds
 
         private void InitializeChangedListView()
         {
-            Utility.LoadIconItemControl(true, ((List<string>)[.. Utility.GetImagePathsFromFolder(Path.Combine(AppSettings.ArtChangesDirectory, RecordDirName))]).ToArray(), OnClickRecordImage, ref recordsLayout, [120, 120]);
+            Task.Run(() => Utility.LoadIconItemControl(true, ((List<string>)[.. Utility.GetImagePathsFromFolder(Path.Combine(AppSettings.ArtChangesDirectory, RecordDirName))]).ToArray(), OnClickRecordImage, ref recordsLayout, [120, 120]));
         }
 
         private void ResetControl()
@@ -129,15 +233,23 @@ namespace MapGenerator.Wnds
             // 恢复按钮状态
             btnGen.Enabled = true;
             btnGen.Text = "生成";
+            operationType = OperationType.None;
+            _progressForm.Hide();
+
         }
 
         #region Event
         private void btnGen_Click(object sender, EventArgs e)
         {
+            curPaintCav?.LockCanvas();
+
             switch (operationType)
             {
                 case OperationType.StyleChange:
                     RquestGen();
+                    break;
+                case OperationType.RegionRemove:
+                    RequestRemoval();
                     break;
             }
         }
@@ -155,8 +267,8 @@ namespace MapGenerator.Wnds
             finally
             {
                 // 解锁画布，允许用户继续绘制
-                rulerPainting.UnlockCanvas();
-                rulerPainting.SetDecoratorMode(false);
+                curPaintCav?.UnlockCanvas();
+                curPaintCav?.SetDecoratorMode(false);
 
                 // 恢复按钮状态
                 btnGen.Enabled = true;
@@ -171,20 +283,20 @@ namespace MapGenerator.Wnds
 
             if (sender is IconItemControl_V rawImage)
             {
+                var filePath = rawImage.FilePath.Replace("preload", "");
+                var newTabPage = Utility.NewPaintingTab(ref MainViewTab, true);
+                curPaintCav.LockCanvas();
+                newTabPage.Text = Path.GetFileNameWithoutExtension(filePath);
+
                 // 加载图像
-                using (Bitmap loadedImage = new Bitmap(rawImage.FilePath))
+                using (Bitmap loadedImage = new Bitmap(filePath))
                 {
-                    // 更新尺寸设置控件的值
-                    genSize.SetSize(loadedImage.Width, loadedImage.Height);
-
-                    // 显示图像到画布
-
                     curPaintCav.DisplayImageOnCanvas(loadedImage);
-
                     this.curTab.Text = rawImage.GetImgName();
-
                     selectRawImgIdx = rawImage.Idx;
                 }
+
+                operationType = OperationType.StyleChange;
             }
         }
 
@@ -192,26 +304,12 @@ namespace MapGenerator.Wnds
         {
             if (sender is IconItemControl_V recordImage)
             {
-                //MainViewTab新增一个tab
-                TabPage newTabPage = new TabPage();
-                newTabPage.AutoScroll = true;
-                RulerPainting rulerPainting = new RulerPainting();
-                rulerPainting.AutoScroll = true;
-                PaintCanvas canvas = new PaintCanvas();
-                rulerPainting.Controls.Add(canvas);
-                newTabPage.Controls.Add(rulerPainting);
+                var newTabPage = Utility.NewPaintingTab(ref MainViewTab, true);
                 newTabPage.Text = Path.GetFileNameWithoutExtension(recordImage.FilePath);
-                MainViewTab.TabPages.Add(newTabPage);
-
-
-                MainViewTab.SelectedTab = newTabPage;
-
+                curPaintCav.LockCanvas();
                 // 加载图像
                 using (Bitmap loadedImage = new Bitmap(recordImage.FilePath))
                 {
-                    // 更新尺寸设置控件的值
-                    genSize.SetSize(loadedImage.Width, loadedImage.Height);
-
                     // 显示图像到画布
                     curPaintCav.DisplayImageOnCanvas(loadedImage);
                 }
@@ -263,44 +361,39 @@ namespace MapGenerator.Wnds
             }
         }
 
+        private void MainViewTab_SelectedIndexChanged_MaskReset(object? sender, EventArgs e)
+        {
+            foreach (TabPage tab in MainViewTab.TabPages)
+            {
+                if (tab.Controls.Count > 0 && tab.Controls[0] is RulerPainting painting)
+                {
+                    painting.SetMaskMode(false);
+                    painting.CurserIconCanChange(false);
+                }
+            }
+        }
 
         #endregion
 
         #region 涂抹工具
-
-        private void pick_Click(object sender, EventArgs e)
-        {
-            if (!btnGen.Enabled)
-                return;
-
-            operationType = OperationType.RegionPick;
-        }
 
         private void remove_Click(object sender, EventArgs e)
         {
             if (!btnGen.Enabled)
                 return;
 
+            if(curPaintCav != null && curPaintCav.IsCanvasEmpty()){
+                MessageBox.Show("重绘完成后才能使用区域移除功能。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             operationType = OperationType.RegionRemove;
+
+            // 进入遮罩模式
+            curPaintCav?.UnlockCanvas();
+            curPaintCav?.SetMaskMode(true);
         }
 
-        private void repaint_Click(object sender, EventArgs e)
-        {
-            if (!btnGen.Enabled)
-                return;
-
-
-            operationType = OperationType.RegionRepaint;
-        }
-
-        private void resume_Click(object sender, EventArgs e)
-        {
-            if (!btnGen.Enabled)
-                return;
-
-            operationType = OperationType.StyleChange;
-            //退出mask涂抹模式
-        }
         #endregion
 
         #region 右键菜单事件处理
@@ -324,6 +417,12 @@ namespace MapGenerator.Wnds
                 Bitmap canvasImage = curPaintCav.GetCanvasImage();
 
                 // 保存
+                var dir = Path.GetDirectoryName(filename);
+                if (!string.IsNullOrEmpty(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
                 canvasImage.Save(filename, ImageFormat.Png);
 
                 // 释放资源
@@ -361,7 +460,7 @@ namespace MapGenerator.Wnds
         private void renameMapMenuItem_Click(object sender, EventArgs e)
         {
             // 创建一个输入对话框
-            string currentName = this.curTab.Text;
+            string currentName = this.curTab != null ? this.curTab.Text : string.Empty;
 
             // 使用InputBox获取用户输入的新名称
             using (Form inputForm = new Form())
@@ -398,7 +497,10 @@ namespace MapGenerator.Wnds
                         if (newName != currentName)
                         {
                             // 更新标签页名称
-                            this.curTab.Text = newName;
+                            if (this.curTab != null)
+                            {
+                                this.curTab.Text = newName;
+                            }
 
                             // 检查是否需要重命名已存在的文件
                             string oldFilePath = AppSettings.GetMapDrawOutputPath($"{currentName}.png");
@@ -455,6 +557,7 @@ namespace MapGenerator.Wnds
         {
             await _comfyUIClient.CancelCurrentExecution();
             MessageBox.Show(this, "已取消");
+            _progressForm.Hide();
         }
 
         private async void RquestGen()
@@ -474,10 +577,13 @@ namespace MapGenerator.Wnds
             if (string.IsNullOrEmpty(selectedRawImagePath))
                 return;
 
-            // 获取画布图像
-            Bitmap canvasImage = curPaintCav.GetCanvasImage();
+            selectedRawImagePath = selectedRawImagePath.Replace("preload\\", "");
+            string outputFile = this.curTab != null ? AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png") : string.Empty;
 
-            // 使用DrawToImgProcessor处理图像
+            //打开假进度条
+            
+            _progressForm.Show(this);
+
             int batchSize = string.IsNullOrEmpty(this.genCnt.Text) ? 1 : int.Parse(this.genCnt.Text);
             string selectPath = string.Empty;
             if (SelectedRefIdx != -1)
@@ -492,7 +598,10 @@ namespace MapGenerator.Wnds
                 }
             }
 
-            var resultImagePath = await _changeStyleProcessor.Process(PromptBox.Text, selectedRawImagePath, selectPath, batchSize, this.genSize.PixelSize, SelectedStyleKey);
+
+            // 使用DrawToImgProcessor处理图像
+            var resultImagePath = await _changeStyleProcessor.Process(PromptBox.Text, selectedRawImagePath, selectPath, batchSize, SelectedStyleKey, _progressForm);
+
 
             if (!string.IsNullOrEmpty(resultImagePath))
             {
@@ -503,7 +612,11 @@ namespace MapGenerator.Wnds
                     {
                         // 显示生成的图像在当前画布上
                         curPaintCav.DisplayImageOnCanvas(generatedImage);
+
+                        generatedImage.Save(outputFile, ImageFormat.Png);
                     }
+                    _progressForm.SetProgress(100, "生成完毕....");
+
                 }
                 catch (Exception ex)
                 {
@@ -518,9 +631,82 @@ namespace MapGenerator.Wnds
             {
                 ResetControl();
             }
+        }
 
-            // 释放资源
-            canvasImage.Dispose();
+        private async void RequestRemoval()
+        {
+            if (curPaintCav == null)
+                return;
+
+            btnGen.Enabled = false;
+            btnGen.Text = "移除中...";
+
+            //打开假进度条
+            _progressForm.Show(this);
+
+            Directory.CreateDirectory(AppSettings.TempMaskDirectory);
+
+            string outputFile = string.Empty;
+            if (this.curTab != null)
+            {
+                outputFile = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
+            }
+            else
+            {
+                MessageBox.Show("未找到当前标签页，无法保存输出文件。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ResetControl();
+                return;
+            }
+
+            if (!Path.Exists(outputFile))
+            {
+                Bitmap canvasImage = curPaintCav.GetCanvasImage();
+                canvasImage.Save(outputFile, ImageFormat.Png);
+            }
+
+            string maskPath = Path.Combine(AppSettings.TempMaskDirectory, $"remove_mask_{this.curTab.Text}.png");
+            using (var maskBmp = curPaintCav.GetMaskImage())
+            {
+                maskBmp.Save(maskPath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+
+            curPaintCav.SetMaskMode(false);
+
+
+            string resultImagePath = "";
+            // 3. 启动实际处理
+            await _removeProcessor.Process(outputFile, maskPath, _progressForm);
+            resultImagePath = await _comfyUIClient.PollForResult(_removeProcessor.LastPromptId, _removeProcessor.LastNodeId);
+            if (string.IsNullOrEmpty(resultImagePath))
+            {
+                MessageBox.Show("无法获取生成的图片");
+            }
+
+            // 5. 处理最终结果
+            if (!string.IsNullOrEmpty(resultImagePath))
+            {
+                try
+                {
+                    using (var generatedImage = new Bitmap(resultImagePath))
+                    {
+                        curPaintCav.DisplayImageOnCanvas(generatedImage);
+                        generatedImage.Save(outputFile, ImageFormat.Png);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, $"无法显示生成的图像: {ex.Message}", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                finally
+                {
+                    ResetControl();
+                    curPaintCav?.SetMaskMode(false);
+                }
+            }
+            else
+            {
+                ResetControl();
+            }
         }
 
         #endregion
@@ -572,7 +758,11 @@ namespace MapGenerator.Wnds
                             Bitmap canvasImage = canvas.GetCanvasImage();
 
                             // 确保目录存在
-                            Directory.CreateDirectory(Path.GetDirectoryName(filename));
+                            var dir = Path.GetDirectoryName(filename);
+                            if (!string.IsNullOrEmpty(dir))
+                            {
+                                Directory.CreateDirectory(dir);
+                            }
 
                             // 保存
                             canvasImage.Save(filename, ImageFormat.Png);
