@@ -30,5 +30,11 @@
 
             this.label.Text = $"缩放100%";
         }
+
+        internal void SetZoomValue(float v)
+        {
+            zoomTrack.Value = (int)(v * 100);
+            this.label.Text = $"缩放{zoomTrack.Value}%";
+        }
     }
 }

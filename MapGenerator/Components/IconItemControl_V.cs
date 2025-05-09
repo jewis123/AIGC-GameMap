@@ -41,15 +41,8 @@ namespace MapGenerator.Components
                 using (var srcImg = Image.FromFile(imgPath))
                 {
                     // 按照_width or height 计算等比缩放后的尺寸
-                    var thumb = new Bitmap(this.bgColor.Width, this.bgColor.Height);
-                    using (var g = Graphics.FromImage(thumb))
-                    {
-                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        g.Clear(Color.Transparent);
-                        g.DrawImage(srcImg, 0, 0, thumb.Width, thumb.Height);
-                    }
-                    this.bgColor.BackgroundImage = (Image)thumb.Clone();
-                    thumb.Dispose();
+                    Image thumbnail = srcImg.GetThumbnailImage(this.bgColor.Width, this.bgColor.Height, null, IntPtr.Zero); 
+                    this.bgColor.BackgroundImage = thumbnail;
                 }
                 this.Idx = idx;
 

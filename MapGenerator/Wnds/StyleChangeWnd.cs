@@ -138,7 +138,6 @@ namespace MapGenerator.Wnds
             InitializeProjectRawListView();
             InitializeChangedListView();
             Utility.NewPaintingTab(ref MainViewTab, true);
-
             lastPaintCav = curPaintCav;
 
             MainViewTab.SelectedIndexChanged += (sender, e) =>
@@ -150,6 +149,18 @@ namespace MapGenerator.Wnds
 
                 lastPaintCav = curPaintCav;
                 lastPaintCav.MaskModeExited += RulerPainting_MaskModeExited;
+
+                zoomBar.SetZoomValue(curPaintCav?.GetCanvasZoomScale() ?? 100);
+            };
+
+            zoomBar.OnZoomChanged += (sender, e) =>
+            {
+                curPaintCav?.SetZoomScale(e);
+            };
+
+            zoomBar.OnZoomReset += (sender, e) =>
+            {
+                curPaintCav?.SetZoomScale(100);
             };
 
 
@@ -201,13 +212,13 @@ namespace MapGenerator.Wnds
 
         private void InitializeProjectRawListView()
         {
-            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.ProjectPreloadImgPath)];
-            Utility.LoadIconItemControl(true, imagePaths.ToArray(), OnClickRawImage, ref rawImageLayout, [120, 120]);
+            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.ProjectPreloadImgDir)];
+            Utility.LoadIconItemControl(true, imagePaths.ToArray(), ref rawImageLayout, OnClickRawImage, [120, 120]);
         }
 
         private void InitializeReferenceListView()
         {
-            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.RefImagePath)];
+            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.RefImageDir)];
             Utility.LoadCheckableImageToFlowLayout(imagePaths.ToArray(), StyleRefImage_Click, ref refLayout);
             if (SelectedRefIdx != -1)
             {
@@ -217,7 +228,7 @@ namespace MapGenerator.Wnds
 
         private void InitializeTemplateListView()
         {
-            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.StyleTemplatePath)];
+            List<string> imagePaths = [.. Utility.GetImagePathsFromFolder(AppSettings.StyleTemplateDir)];
             Utility.LoadCheckableImageToFlowLayout(imagePaths.ToArray(), StyleStyleImage_Click, ref templateLayout);
 
             (templateLayout.Controls[0] as CheckableImageItem).Selected = true;
@@ -225,7 +236,7 @@ namespace MapGenerator.Wnds
 
         private void InitializeChangedListView()
         {
-            Task.Run(() => Utility.LoadIconItemControl(true, ((List<string>)[.. Utility.GetImagePathsFromFolder(Path.Combine(AppSettings.ArtChangesDirectory, RecordDirName))]).ToArray(), OnClickRecordImage, ref recordsLayout, [120, 120]));
+            Task.Run(() => Utility.LoadIconItemControl(true, ((List<string>)[.. Utility.GetImagePathsFromFolder(Path.Combine(AppSettings.ArtChangesDirectory, RecordDirName))]).ToArray(), ref recordsLayout, OnClickRecordImage, [120, 120]));
         }
 
         private void ResetControl()
@@ -382,7 +393,8 @@ namespace MapGenerator.Wnds
             if (!btnGen.Enabled)
                 return;
 
-            if(curPaintCav != null && curPaintCav.IsCanvasEmpty()){
+            if (curPaintCav != null && curPaintCav.IsCanvasEmpty())
+            {
                 MessageBox.Show("重绘完成后才能使用区域移除功能。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
@@ -503,8 +515,8 @@ namespace MapGenerator.Wnds
                             }
 
                             // 检查是否需要重命名已存在的文件
-                            string oldFilePath = AppSettings.GetMapDrawOutputPath($"{currentName}.png");
-                            string newFilePath = AppSettings.GetMapDrawOutputPath($"{newName}.png");
+                            string oldFilePath = AppSettings.GetTmpDrawPath($"{currentName}.png");
+                            string newFilePath = AppSettings.GetTmpDrawPath($"{newName}.png");
 
                             try
                             {
@@ -515,8 +527,8 @@ namespace MapGenerator.Wnds
                                 }
 
                                 // 检查并重命名可能存在的ComfyUI输出文件
-                                string oldOutputPath = AppSettings.GetComfyUIOutputPath($"{currentName}.png");
-                                string newOutputPath = AppSettings.GetComfyUIOutputPath($"{newName}.png");
+                                string oldOutputPath = AppSettings.GetMapOutputPath($"{currentName}.png");
+                                string newOutputPath = AppSettings.GetMapOutputPath($"{newName}.png");
 
                                 if (File.Exists(oldOutputPath))
                                 {
@@ -524,8 +536,8 @@ namespace MapGenerator.Wnds
                                 }
 
                                 // 检查并重命名可能存在的遮罩文件
-                                string oldMaskPath = AppSettings.GetMaskDrawOutputPath($"{currentName}_mask.png");
-                                string newMaskPath = AppSettings.GetMaskDrawOutputPath($"{newName}_mask.png");
+                                string oldMaskPath = AppSettings.GetTmpMaskPath($"{currentName}_mask.png");
+                                string newMaskPath = AppSettings.GetTmpMaskPath($"{newName}_mask.png");
 
                                 if (File.Exists(oldMaskPath))
                                 {
@@ -578,10 +590,10 @@ namespace MapGenerator.Wnds
                 return;
 
             selectedRawImagePath = selectedRawImagePath.Replace("preload\\", "");
-            string outputFile = this.curTab != null ? AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png") : string.Empty;
+            string outputFile = this.curTab != null ? AppSettings.GetMapOutputPath($"{this.curTab.Text}.png") : string.Empty;
 
             //打开假进度条
-            
+
             _progressForm.Show(this);
 
             int batchSize = string.IsNullOrEmpty(this.genCnt.Text) ? 1 : int.Parse(this.genCnt.Text);
@@ -649,7 +661,7 @@ namespace MapGenerator.Wnds
             string outputFile = string.Empty;
             if (this.curTab != null)
             {
-                outputFile = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
+                outputFile = AppSettings.GetMapOutputPath($"{this.curTab.Text}.png");
             }
             else
             {

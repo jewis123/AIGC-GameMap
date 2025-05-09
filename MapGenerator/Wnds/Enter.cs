@@ -29,7 +29,7 @@ namespace MapGenerator
         {
             try
             {
-                string tempPath = AppSettings.AssetTempPath;
+                string tempPath = AppSettings.AssetTempDir;
 
                 if (Directory.Exists(tempPath))
                 {

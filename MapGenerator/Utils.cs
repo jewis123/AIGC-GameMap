@@ -108,35 +108,7 @@ namespace MapGenerator.Utils
             }
         }
 
-        public static void LoadThumbnailImages(string[] imagePaths, ref FlowLayoutPanel layout, int[]? size = null, EventHandler clickFunc = null)
-        {
-            int sizeX = size == null ? 120 : size[0];
-            int sizeY = size == null ? 120 : size[1];
-            try
-            {
-                for (int i = 0; i < imagePaths.Length; i++)
-                {
-                    Image img = Image.FromFile(imagePaths[i]);
-                    Image thumbnail = img.GetThumbnailImage(sizeX, sizeY, null, IntPtr.Zero); // 生成 100x100 的缩略图
-
-                    // 使用 PictureBox 显示缩略图
-                    PictureBox pictureBox = new PictureBox();
-                    pictureBox.Image = thumbnail;
-                    pictureBox.Size = new Size(sizeX, sizeY);
-
-                    pictureBox.Click += clickFunc;
-                    pictureBox.DoubleClick += ReferenceImage_DBClick;
-
-                    layout.Controls.Add(pictureBox);
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"加载图片时出错: {ex.Message}");
-            }
-        }
-
-        public static void LoadIconItemControl(bool isVertical, string[] imagePaths, EventHandler clickFunc, ref FlowLayoutPanel layout, int[]? size = null)
+        public static void LoadIconItemControl(bool isVertical, string[] imagePaths, ref FlowLayoutPanel layout, EventHandler? clickFunc = null, int[]? size = null, ContextMenuStrip? menuStrip = null)
         {
             layout.Controls.Clear();
 
@@ -145,6 +117,8 @@ namespace MapGenerator.Utils
                 if (isVertical)
                 {
                     IconItemControl_V iconItemControl = new IconItemControl_V();
+                    if (menuStrip != null)
+                        iconItemControl.ContextMenuStrip = menuStrip;
                     string fileName = Path.GetFileNameWithoutExtension(imagePaths[i]);
                     iconItemControl.SetImg(imagePaths[i], fileName, i, size);
                     if (clickFunc != null)
@@ -154,6 +128,8 @@ namespace MapGenerator.Utils
                 else
                 {
                     IconItemControl_H iconItemControl = new IconItemControl_H();
+                    if (menuStrip != null)
+                        iconItemControl.ContextMenuStrip = menuStrip;
                     string fileName = Path.GetFileNameWithoutExtension(imagePaths[i]);
                     iconItemControl.SetImg(imagePaths[i], fileName, i, size);
                     if (clickFunc != null)
@@ -184,10 +160,9 @@ namespace MapGenerator.Utils
         }
 
 
-        private void LogStr(string str){
+        public static void LogStr(string str)
+        {
             System.Diagnostics.Debug.WriteLine(str);
         }
-
     }
-
 }

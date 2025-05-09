@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MapGenerator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+76e7007de1b92af3740577a88f68f2a3969fd735")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14c815043ad336f68b9aa6ee4a0080ebeba08651")]
 [assembly: System.Reflection.AssemblyProductAttribute("MapGenerator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MapGenerator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

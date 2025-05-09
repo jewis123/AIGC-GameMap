@@ -9,7 +9,7 @@
         private Button exitMaskButton;
         private Button exitDecoratorButton; // 添加退出装饰模式的按钮
         // 新增成员变量用于动态调整标尺刻度间隔
-        private int rulerInterval = 10;
+        private int rulerInterval = 5;
         // 定义装饰模式退出事件
         public event EventHandler? DecoratorModeExited;
         public event EventHandler? MaskModeExited;
@@ -127,7 +127,6 @@
         private void DrawHorizontalRuler(Graphics g)
         {
             int scrollX = Math.Abs(this.AutoScrollPosition.X);
-            int maxRuler = canvasControl.Width + expandSize;
             g.FillRectangle(Brushes.LightGray, 0, 0, this.Width, RulerSize);
             g.DrawLine(Pens.DarkGray, 0, RulerSize, this.Width, RulerSize);
             g.DrawLine(Pens.DarkGray, RulerSize, 0, RulerSize, RulerSize);
@@ -135,19 +134,19 @@
             // 获取当前缩放比例
             float currentZoomScale = GetCanvasZoomScale();
 
-            // 根据当前缩放比例调整基础刻度间隔
-            int baseInterval = (int)(rulerInterval / currentZoomScale);
+            // 刻度间隔始终用实际像素为单位
+            int baseInterval = rulerInterval; // 如10、20、50、100
+            // 动态调整刻度间隔以适应缩放后显示效果
+            while (baseInterval * currentZoomScale < 30) baseInterval *= 2;
+            while (baseInterval * currentZoomScale > 150 && baseInterval > 10) baseInterval /= 2;
 
-            // 确保基础刻度间隔不小于最小值
-            baseInterval = Math.Max(10, baseInterval);
+            // 计算实际像素范围
+            int startValue = (int)Math.Floor((float)scrollX / currentZoomScale / baseInterval) * baseInterval;
+            int endValue = (int)Math.Ceiling(((scrollX + this.Width - RulerSize) / currentZoomScale) / baseInterval) * baseInterval;
 
-            // 计算起始和结束位置
-            int startX = scrollX - (scrollX % baseInterval);
-            int endX = Math.Min(startX + this.Width - RulerSize, maxRuler);
-
-            for (int x = startX; x <= endX; x += baseInterval)
+            for (int x = startValue; x <= endValue; x += baseInterval)
             {
-                int posX = x - scrollX + RulerSize;
+                int posX = (int)(x * currentZoomScale) - scrollX + RulerSize;
                 if (posX < RulerSize || posX > this.Width) continue;
                 int tickHeight = (x % (baseInterval * 5) == 0) ? 10 : 5;
                 g.DrawLine(Pens.Black, posX, 0, posX, tickHeight);
@@ -161,7 +160,6 @@
         private void DrawVerticalRuler(Graphics g)
         {
             int scrollY = Math.Abs(this.AutoScrollPosition.Y);
-            int maxRuler = canvasControl.Height + expandSize;
             g.FillRectangle(Brushes.LightGray, 0, 0, RulerSize, this.Height);
             g.DrawLine(Pens.DarkGray, RulerSize, 0, RulerSize, this.Height);
             g.DrawLine(Pens.DarkGray, 0, RulerSize, RulerSize, RulerSize);
@@ -169,19 +167,17 @@
             // 获取当前缩放比例
             float currentZoomScale = GetCanvasZoomScale();
 
-            // 根据当前缩放比例调整基础刻度间隔
-            int baseInterval = (int)(rulerInterval / currentZoomScale);
+            // 刻度间隔始终用实际像素为单位
+            int baseInterval = rulerInterval;
+            while (baseInterval * currentZoomScale < 30) baseInterval *= 2;
+            while (baseInterval * currentZoomScale > 150 && baseInterval > 10) baseInterval /= 2;
 
-            // 确保基础刻度间隔不小于最小值
-            baseInterval = Math.Max(10, baseInterval);
+            int startValue = (int)Math.Floor((float)scrollY / currentZoomScale / baseInterval) * baseInterval;
+            int endValue = (int)Math.Ceiling(((scrollY + this.Height - RulerSize) / currentZoomScale) / baseInterval) * baseInterval;
 
-            // 计算起始和结束位置
-            int startY = scrollY - (scrollY % baseInterval);
-            int endY = Math.Min(startY + this.Height - RulerSize, maxRuler);
-
-            for (int y = startY; y <= endY; y += baseInterval)
+            for (int y = startValue; y <= endValue; y += baseInterval)
             {
-                int posY = y - scrollY + RulerSize;
+                int posY = (int)(y * currentZoomScale) - scrollY + RulerSize;
                 if (posY < RulerSize || posY > this.Height) continue;
                 int tickWidth = (y % (baseInterval * 5) == 0) ? 10 : 5;
                 g.DrawLine(Pens.Black, 0, posY, tickWidth, posY);

@@ -1,15 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "BgkjcNqTjvE=",
+  "dgSpecHash": "Zk3X+POoKoU=",
   "success": true,
-  "projectFilePath": "F:\\WorkSpace\\MapGen\\MapGenerator\\MapGenerator.csproj",
+  "projectFilePath": "G:\\WorkSpace\\MapGen\\MapGenerator\\MapGenerator.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Jervie\\.nuget\\packages\\realtaiizor\\3.7.9.5\\realtaiizor.3.7.9.5.nupkg.sha512",
-    "C:\\Users\\Jervie\\.nuget\\packages\\microsoft.net.sdk.compilers.toolset\\9.0.201\\microsoft.net.sdk.compilers.toolset.9.0.201.nupkg.sha512",
-    "C:\\Users\\Jervie\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.14\\microsoft.windowsdesktop.app.ref.8.0.14.nupkg.sha512",
-    "C:\\Users\\Jervie\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.14\\microsoft.netcore.app.ref.8.0.14.nupkg.sha512",
-    "C:\\Users\\Jervie\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.14\\microsoft.aspnetcore.app.ref.8.0.14.nupkg.sha512",
-    "C:\\Users\\Jervie\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.14\\microsoft.netcore.app.host.win-x64.8.0.14.nupkg.sha512"
+    "C:\\Users\\Administrator\\.nuget\\packages\\realtaiizor\\3.7.9.5\\realtaiizor.3.7.9.5.nupkg.sha512"
   ],
   "logs": []
 }

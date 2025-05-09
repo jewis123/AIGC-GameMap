@@ -39,6 +39,7 @@
             closeMapMenuItem = new ToolStripMenuItem();
             FolderStripMenuItem = new ToolStripMenuItem();
             loadImageStripMenuItem = new ToolStripMenuItem();
+            newDrawing = new ToolStripMenuItem();
             HelpStripMenuItem = new ToolStripMenuItem();
             menuStrip = new MenuStrip();
             ToolPanel = new Panel();
@@ -62,8 +63,13 @@
             modelLayout = new FlowLayoutPanel();
             historyTab = new TabPage();
             historyLayout = new FlowLayoutPanel();
+            drawingTab = new TabPage();
+            drawingLayout = new FlowLayoutPanel();
             MainViewTab = new TabControl();
             zoomBar = new Components.ZoomBar();
+            imgMenu = new ContextMenuStrip(components);
+            deleteImg = new ToolStripMenuItem();
+            openImg = new ToolStripMenuItem();
             curMapContextMenu.SuspendLayout();
             menuStrip.SuspendLayout();
             ToolPanel.SuspendLayout();
@@ -77,6 +83,8 @@
             refTab.SuspendLayout();
             loraTab.SuspendLayout();
             historyTab.SuspendLayout();
+            drawingTab.SuspendLayout();
+            imgMenu.SuspendLayout();
             SuspendLayout();
             // 
             // curMapContextMenu
@@ -134,7 +142,7 @@
             // 
             // FolderStripMenuItem
             // 
-            FolderStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { loadImageStripMenuItem });
+            FolderStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { loadImageStripMenuItem, newDrawing });
             FolderStripMenuItem.Name = "FolderStripMenuItem";
             FolderStripMenuItem.Size = new Size(44, 21);
             FolderStripMenuItem.Text = "文件";
@@ -145,6 +153,13 @@
             loadImageStripMenuItem.Size = new Size(124, 22);
             loadImageStripMenuItem.Text = "加载图片";
             loadImageStripMenuItem.Click += loadImageStripMenuItem_Click;
+            // 
+            // newDrawing
+            // 
+            newDrawing.Name = "newDrawing";
+            newDrawing.Size = new Size(124, 22);
+            newDrawing.Text = "新建涂鸦";
+            newDrawing.Click += newDrawing_Click;
             // 
             // HelpStripMenuItem
             // 
@@ -311,6 +326,7 @@
             mapStyle.Controls.Add(refTab);
             mapStyle.Controls.Add(loraTab);
             mapStyle.Controls.Add(historyTab);
+            mapStyle.Controls.Add(drawingTab);
             mapStyle.Location = new Point(3, 3);
             mapStyle.Name = "mapStyle";
             mapStyle.SelectedIndex = 0;
@@ -361,7 +377,7 @@
             historyTab.Name = "historyTab";
             historyTab.Size = new Size(281, 433);
             historyTab.TabIndex = 2;
-            historyTab.Text = "记录";
+            historyTab.Text = "生成记录";
             historyTab.UseVisualStyleBackColor = true;
             // 
             // historyLayout
@@ -372,10 +388,28 @@
             historyLayout.Size = new Size(281, 433);
             historyLayout.TabIndex = 0;
             // 
+            // drawingTab
+            // 
+            drawingTab.Controls.Add(drawingLayout);
+            drawingTab.Location = new Point(4, 26);
+            drawingTab.Name = "drawingTab";
+            drawingTab.Padding = new Padding(3);
+            drawingTab.Size = new Size(281, 433);
+            drawingTab.TabIndex = 4;
+            drawingTab.Text = "手绘记录";
+            drawingTab.UseVisualStyleBackColor = true;
+            // 
+            // drawingLayout
+            // 
+            drawingLayout.Dock = DockStyle.Fill;
+            drawingLayout.Location = new Point(3, 3);
+            drawingLayout.Name = "drawingLayout";
+            drawingLayout.Size = new Size(275, 427);
+            drawingLayout.TabIndex = 0;
+            // 
             // MainViewTab
             // 
             MainViewTab.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            MainViewTab.ContextMenuStrip = curMapContextMenu;
             MainViewTab.Location = new Point(0, 28);
             MainViewTab.Name = "MainViewTab";
             MainViewTab.SelectedIndex = 0;
@@ -391,6 +425,26 @@
             zoomBar.Name = "zoomBar";
             zoomBar.Size = new Size(262, 29);
             zoomBar.TabIndex = 6;
+            // 
+            // imgMenu
+            // 
+            imgMenu.Items.AddRange(new ToolStripItem[] { deleteImg, openImg });
+            imgMenu.Name = "imgMenu";
+            imgMenu.Size = new Size(101, 48);
+            // 
+            // deleteImg
+            // 
+            deleteImg.Name = "deleteImg";
+            deleteImg.Size = new Size(100, 22);
+            deleteImg.Text = "删除";
+            deleteImg.Click += deleteImg_Click;
+            // 
+            // openImg
+            // 
+            openImg.Name = "openImg";
+            openImg.Size = new Size(100, 22);
+            openImg.Text = "打开";
+            openImg.Click += openImg_Click;
             // 
             // MainEditor
             // 
@@ -421,6 +475,8 @@
             refTab.ResumeLayout(false);
             loraTab.ResumeLayout(false);
             historyTab.ResumeLayout(false);
+            drawingTab.ResumeLayout(false);
+            imgMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -462,5 +518,11 @@
         private FlowLayoutPanel modelLayout;
         private FlowLayoutPanel historyLayout;
         private Components.ZoomBar zoomBar;
+        private TabPage drawingTab;
+        private FlowLayoutPanel drawingLayout;
+        private ToolStripMenuItem newDrawing;
+        private ContextMenuStrip imgMenu;
+        private ToolStripMenuItem deleteImg;
+        private ToolStripMenuItem openImg;
     }
 }

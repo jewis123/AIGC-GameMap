@@ -32,6 +32,7 @@ namespace MapGenerator.Wnds
             this.FormClosing += Wnd_FormClosing;
 
             _progressForm = new Components.ProgressForm();
+
         }
 
         private void Wnd_FormClosing(object? sender, FormClosingEventArgs e)
@@ -72,7 +73,7 @@ namespace MapGenerator.Wnds
                 {
                     // 保存标签页内容
                     string fileName = Path.GetFileNameWithoutExtension(tabPage.Text);
-                    string imagePath = AppSettings.GetMapDrawOutputPath($"{fileName}.png");
+                    string imagePath = AppSettings.GetTmpDrawPath($"{fileName}.png");
                     //保存paintcanvas内容
                     if (!curPaintCav.IsCanvasEmpty())
                     {
@@ -119,7 +120,10 @@ namespace MapGenerator.Wnds
             InitRefImageList();
             InitModelImageList();
             InitOutputImageList();
+            InitDrawingList();
         }
+
+
 
         // 在UI上显示状态消息的辅助方法
         private void ShowStatusMessage(string message, bool isError = false)
@@ -135,6 +139,7 @@ namespace MapGenerator.Wnds
             // 解锁画布，允许用户继续绘制
             curPaintCav.UnlockCanvas();
             curPaintCav.SetDecoratorMode(false);
+            curPaintCav.SetMaskMode(false);
 
             // 恢复按钮状态
             btnGen.Enabled = true;
@@ -213,7 +218,7 @@ namespace MapGenerator.Wnds
                         .Concat(Directory.GetFiles(decoratorPath, "*.jpeg")).ToArray();
 
 
-                    Utility.LoadIconItemControl(true, imageFiles, DecoratorItemSelected, ref this.decoratorList);
+                    Utility.LoadIconItemControl(true, imageFiles, ref this.decoratorList, DecoratorItemSelected);
 
                     // 如果没有找到任何图片
                     if (decoratorList.Controls.Count == 0)
@@ -264,21 +269,7 @@ namespace MapGenerator.Wnds
             }
         }
 
-        // 处理装饰模式退出事件
-        private void RulerPainting_DecoratorModeExited(object? sender, EventArgs e)
-        {
-            // 重置工具栏状态
-            this.toolTab.Enabled = true;
 
-            // 重置装饰列表选中状态
-            foreach (var item in this.decoratorList.Controls)
-            {
-                if (item is IconItemControl_V ctrl)
-                {
-                    ctrl.SetBackground(false);
-                }
-            }
-        }
 
         #endregion
 
@@ -295,6 +286,8 @@ namespace MapGenerator.Wnds
             MainViewTab.SelectedIndexChanged += onMainViewTabSelectChanged;
             this.toolTab.SelectedIndexChanged += onToolTabChanged;
 
+            MainViewTab.MouseUp += MainViewTab_MouseUp;
+
             var newTab = Utility.NewPaintingTab(ref MainViewTab);
             newTab.Text = "New Drawing";
 
@@ -308,8 +301,40 @@ namespace MapGenerator.Wnds
             };
 
             this.PromptBox.Hint = "输入提示词....";
+        }
 
+        // 只在TabPage标签区域右键时显示菜单
+        private void MainViewTab_MouseUp(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                for (int i = 0; i < MainViewTab.TabCount; i++)
+                {
+                    Rectangle tabRect = MainViewTab.GetTabRect(i);
+                    if (tabRect.Contains(e.Location))
+                    {
+                        MainViewTab.SelectedIndex = i;
+                        curMapContextMenu.Show(MainViewTab, e.Location);
+                        return;
+                    }
+                }
+            }
+        }
 
+        // 处理装饰模式退出事件
+        private void RulerPainting_DecoratorModeExited(object? sender, EventArgs e)
+        {
+            // 重置工具栏状态
+            this.toolTab.Enabled = true;
+
+            // 重置装饰列表选中状态
+            foreach (var item in this.decoratorList.Controls)
+            {
+                if (item is IconItemControl_V ctrl)
+                {
+                    ctrl.SetBackground(false);
+                }
+            }
         }
 
         private void OnZoomBarValueChanged(object? sender, int e)
@@ -344,6 +369,8 @@ namespace MapGenerator.Wnds
 
             lastPaintCav = curPaintCav;
             lastPaintCav.DecoratorModeExited += RulerPainting_DecoratorModeExited;
+
+            zoomBar.SetZoomValue(curPaintCav?.GetCanvasZoomScale() ?? 100);
         }
 
         private void paintSize_Load(object sender, EventArgs e)
@@ -416,6 +443,12 @@ namespace MapGenerator.Wnds
 
         #region 右键菜单事件处理
 
+        private void newDrawing_Click(object sender, EventArgs e)
+        {
+            var newTab = Utility.NewPaintingTab(ref MainViewTab);
+            newTab.Text = $"新涂鸦{MainViewTab.TabCount}";
+        }
+
         private void saveMapMenuItem_Click(object sender, EventArgs e)
         {
             if (curPaintCav == null)
@@ -430,7 +463,7 @@ namespace MapGenerator.Wnds
                 }
 
                 // 使用与btnGen_Click相同的保存逻辑
-                string filename = AppSettings.GetMapDrawOutputPath($"{this.curTab.Text}.png");
+                string filename = AppSettings.GetTmpDrawPath($"{this.curTab.Text}.png");
 
                 // 获取画布图像
                 Bitmap canvasImage = curPaintCav.GetCanvasImage();
@@ -442,6 +475,8 @@ namespace MapGenerator.Wnds
                 canvasImage.Dispose();
 
                 MessageBox.Show(this, $"地图已保存至:\n{filename}", "保存成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                InitDrawingList();
             }
             catch (Exception ex)
             {
@@ -607,8 +642,8 @@ namespace MapGenerator.Wnds
                             this.curTab.Text = newName;
 
                             // 检查是否需要重命名已存在的文件
-                            string oldFilePath = AppSettings.GetMapDrawOutputPath($"{currentName}.png");
-                            string newFilePath = AppSettings.GetMapDrawOutputPath($"{newName}.png");
+                            string oldFilePath = AppSettings.GetTmpDrawPath($"{currentName}.png");
+                            string newFilePath = AppSettings.GetTmpDrawPath($"{newName}.png");
 
                             try
                             {
@@ -619,8 +654,8 @@ namespace MapGenerator.Wnds
                                 }
 
                                 // 检查并重命名可能存在的ComfyUI输出文件
-                                string oldOutputPath = AppSettings.GetComfyUIOutputPath($"{currentName}.png");
-                                string newOutputPath = AppSettings.GetComfyUIOutputPath($"{newName}.png");
+                                string oldOutputPath = AppSettings.GetMapOutputPath($"{currentName}.png");
+                                string newOutputPath = AppSettings.GetMapOutputPath($"{newName}.png");
 
                                 if (File.Exists(oldOutputPath))
                                 {
@@ -628,8 +663,8 @@ namespace MapGenerator.Wnds
                                 }
 
                                 // 检查并重命名可能存在的遮罩文件
-                                string oldMaskPath = AppSettings.GetMaskDrawOutputPath($"{currentName}_mask.png");
-                                string newMaskPath = AppSettings.GetMaskDrawOutputPath($"{newName}_mask.png");
+                                string oldMaskPath = AppSettings.GetTmpMaskPath($"{currentName}_mask.png");
+                                string newMaskPath = AppSettings.GetTmpMaskPath($"{newName}_mask.png");
 
                                 if (File.Exists(oldMaskPath))
                                 {
@@ -687,6 +722,37 @@ namespace MapGenerator.Wnds
             }
 
         }
+
+        private void deleteImg_Click(object sender, EventArgs e)
+        {
+            if (imgMenu.SourceControl is IconItemControl_V itemV)
+            {
+                // 删除图片 itemV.FilePath
+                if (MessageBox.Show(this, $"确定要删除：{itemV.FilePath}？", "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    // 删除文件
+                    File.Delete(itemV.FilePath);
+
+                    // 删除控件
+                    itemV.Dispose();
+                }
+            }
+        }
+
+        private void openImg_Click(object sender, EventArgs e)
+        {
+            if (imgMenu.SourceControl is IconItemControl_V itemV)
+            {
+                var newTab = Utility.NewPaintingTab(ref MainViewTab);
+                newTab.Text = Path.GetFileNameWithoutExtension(itemV.FilePath);
+
+                //加载图像到画布
+                using (Bitmap loadedImage = new Bitmap(itemV.FilePath))
+                {
+                    curPaintCav.DisplayImageOnCanvas(loadedImage);
+                }
+            }
+        }
         #endregion
 
         #region 参考图列表
@@ -696,17 +762,25 @@ namespace MapGenerator.Wnds
 
         private void InitRefImageList()
         {
-            Utility.LoadCheckableImageToFlowLayout(Utility.GetImagePathsFromFolder(AppSettings.RefImagePath).ToArray(), ReferenceImage_Click, ref refTabLayout);
+            Utility.LoadCheckableImageToFlowLayout(Utility.GetImagePathsFromFolder(AppSettings.RefImageDir).ToArray(), ReferenceImage_Click, ref refTabLayout);
         }
 
         private void InitModelImageList()
         {
-            Utility.LoadCheckableImageToFlowLayout(Utility.GetImagePathsFromFolder(AppSettings.StyleTemplatePath).ToArray(), ModelImage_Click, ref modelLayout);
+            Utility.LoadCheckableImageToFlowLayout(Utility.GetImagePathsFromFolder(AppSettings.StyleTemplateDir).ToArray(), ModelImage_Click, ref modelLayout);
         }
 
         private void InitOutputImageList()
         {
-            Utility.LoadThumbnailImages(Utility.GetImagePathsFromFolder(AppSettings.OutputDirectory).ToArray(), ref historyLayout);
+            Utility.LoadIconItemControl(true, Utility.GetImagePathsFromFolder(AppSettings.MapTmpOutputDir).ToArray(),
+             ref historyLayout, null, null, imgMenu);
+        }
+
+        private void InitDrawingList()
+        {
+            drawingLayout.Controls.Clear();
+            Utility.LoadIconItemControl(true, Utility.GetImagePathsFromFolder(AppSettings.TempDrawDirectory).ToArray(),
+            ref drawingLayout, null, [120, 120], imgMenu);
         }
 
         private void ModelImage_Click(object? sender, EventArgs e)
@@ -812,9 +886,15 @@ namespace MapGenerator.Wnds
                 }
             }
 
-            string canvasPath = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
-            string maskPath = AppSettings.GetMaskDrawOutputPath($"{this.curTab.Text}_mask.png");
-            string outputFile = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}_repaint.png");
+            string originImagePath = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}.png");
+            if (!Path.Exists(originImagePath))
+            {
+                MessageBox.Show("请对output目录中的图片进行重绘，手绘图片无法直接重绘！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ResetControl();
+                return;
+            }
+            string maskPath = AppSettings.GetTmpMaskPath($"{this.curTab.Text}_mask.png");
+            string outputFile = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}_repaint.png");
 
             maskImage.Save(maskPath, System.Drawing.Imaging.ImageFormat.Png);
 
@@ -826,7 +906,7 @@ namespace MapGenerator.Wnds
             curPaintCav.LockCanvas();
 
             curProcessor = _inpaintProcessor;
-            string resultImagePath = await _inpaintProcessor.Process(promptText, canvasPath, maskPath, _progressForm);
+            string resultImagePath = await _inpaintProcessor.Process(promptText, originImagePath, maskPath, _progressForm);
 
             if (!string.IsNullOrEmpty(resultImagePath))
             {
@@ -878,8 +958,8 @@ namespace MapGenerator.Wnds
             curPaintCav.LockCanvas();
 
             // 使用AppSettings中定义的路径获取文件名
-            string filename = AppSettings.GetMapDrawOutputPath($"{this.curTab.Text}.png");
-            string outputFile = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
+            string filename = AppSettings.GetTmpDrawPath($"{this.curTab.Text}.png");
+            string outputFile = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}.png");
 
             // 获取画布图像
             Bitmap canvasImage = curPaintCav.GetCanvasImage();
@@ -958,8 +1038,8 @@ namespace MapGenerator.Wnds
             }
 
             // 使用AppSettings中定义的路径获取文件名
-            string filename = AppSettings.GetMapDrawOutputPath($"{this.curTab.Text}.png");
-            string outputFile = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
+            string filename = AppSettings.GetTmpDrawPath($"{this.curTab.Text}.png");
+            string outputFile = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}.png");
 
             // 获取画布图像
             Bitmap canvasImage = curPaintCav.GetCanvasImage();
@@ -1057,8 +1137,8 @@ namespace MapGenerator.Wnds
             }
 
             // 保存文件路径
-            string canvasPath = AppSettings.GetComfyUIOutputPath($"{this.curTab.Text}.png");
-            string maskPath = AppSettings.GetMaskDrawOutputPath($"{this.curTab.Text}_decorator_mask.png");
+            string canvasPath = AppSettings.GetMapOutputPath($"{this.curTab.Text}.png");
+            string maskPath = AppSettings.GetTmpMaskPath($"{this.curTab.Text}_decorator_mask.png");
 
             // 保存遮罩图像
             maskImage.Save(maskPath, ImageFormat.Png);
@@ -1109,6 +1189,7 @@ namespace MapGenerator.Wnds
         }
 
         #endregion
+
 
     }
 

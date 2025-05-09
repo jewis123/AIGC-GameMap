@@ -30,15 +30,17 @@ namespace MapGenerator
 
         public static string ArtChangesDirectory => Path.Combine(AssetsDirectory, "art_changes");
 
-        public static string AssetTempPath => Path.Combine(OutputDirectory, "temp");
+        public static string AssetTempDir => Path.Combine(OutputDirectory, "temp");
 
         public static string WorkflowPath => Path.Combine(AssetsDirectory, "workflow");
-        public static string StyleTemplatePath => Path.Combine(AssetsDirectory, "style_template");
+        public static string StyleTemplateDir => Path.Combine(AssetsDirectory, "style_template");
 
-        public static string ProjectRawImgPath => Path.Combine(AssetsDirectory, "project_raw");
-        public static string ProjectPreloadImgPath => Path.Combine(ProjectRawImgPath, "preload");
+        public static string ProjectRawImgDir => Path.Combine(AssetsDirectory, "project_raw");
+        public static string ProjectPreloadImgDir => Path.Combine(ProjectRawImgDir, "preload");
 
-        public static string RefImagePath => Path.Combine(AssetsDirectory, "reference/ref");
+        public static string RefImageDir => Path.Combine(AssetsDirectory, "reference/ref");
+        public static string MapOutputDir => Path.Combine(OutputDirectory, "map");
+        public static string MapTmpOutputDir => Path.Combine(OutputDirectory, "temp", "map");
 
         // 获取特定图片的完整路径
         public static string GetImagePath(string fileName)
@@ -46,23 +48,28 @@ namespace MapGenerator
             return Path.Combine(AssetsDirectory, fileName);
         }
 
+        public static string GetMapOutputPath(string fileName)
+        {
+            // 生成带时间戳的文件名，避免覆盖
+            return Path.Combine(OutputDirectory,"map", fileName);
+        }
         // 获取带有时间戳的地图输出文件路径
-        public static string GetMapDrawOutputPath(string fileName)
+        public static string GetTmpDrawPath(string fileName)
         {
             // 生成带时间戳的文件名，避免覆盖
             return Path.Combine(OutputDirectory, "temp", "draw", fileName);
         }
 
-        public static string GetMaskDrawOutputPath(string fileName)
+        public static string GetTmpMaskPath(string fileName)
         {
             // 生成带时间戳的文件名，避免覆盖
             return Path.Combine(OutputDirectory, "temp", "mask", fileName);
         }
 
-        public static string GetComfyUIOutputPath(string fileName)
+        public static string GetTmpMapOutputPath(string fileName)
         {
             // 生成带时间戳的文件名，避免覆盖
-            return Path.Combine(OutputDirectory,"map", "comfyui", fileName);
+            return Path.Combine(OutputDirectory, "temp", "map",fileName);
         }
 
         // 笔刷颜色字典

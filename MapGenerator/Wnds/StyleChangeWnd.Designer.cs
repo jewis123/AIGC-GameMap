@@ -65,6 +65,7 @@
             reloadDrawingMenuItem = new ToolStripMenuItem();
             clearMapMenuItem = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
+            zoomBar = new Components.ZoomBar();
             RightSideLayOut.SuspendLayout();
             tabs.SuspendLayout();
             refTab.SuspendLayout();
@@ -329,7 +330,7 @@
             ToolPanel.Controls.Add(flowLayoutPanel1);
             ToolPanel.Location = new Point(3, 611);
             ToolPanel.Name = "ToolPanel";
-            ToolPanel.Size = new Size(631, 28);
+            ToolPanel.Size = new Size(341, 28);
             ToolPanel.TabIndex = 8;
             // 
             // flowLayoutPanel1
@@ -338,7 +339,7 @@
             flowLayoutPanel1.Dock = DockStyle.Fill;
             flowLayoutPanel1.Location = new Point(0, 0);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(631, 28);
+            flowLayoutPanel1.Size = new Size(341, 28);
             flowLayoutPanel1.TabIndex = 0;
             // 
             // btnRemove
@@ -427,11 +428,22 @@
             toolStripSeparator1.Name = "toolStripSeparator1";
             toolStripSeparator1.Size = new Size(6, 6);
             // 
+            // zoomBar
+            // 
+            zoomBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            zoomBar.BackColor = SystemColors.Control;
+            zoomBar.Location = new Point(375, 611);
+            zoomBar.MinimumSize = new Size(0, 29);
+            zoomBar.Name = "zoomBar";
+            zoomBar.Size = new Size(255, 29);
+            zoomBar.TabIndex = 11;
+            // 
             // StyleChangeWnd
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(940, 641);
+            Controls.Add(zoomBar);
             Controls.Add(MainViewTab);
             Controls.Add(menuStrip);
             Controls.Add(ToolPanel);
@@ -498,5 +510,6 @@
         private HintRichTextBox rawSearch;
         private HintRichTextBox recordSearch;
         private FlowLayoutPanel refLayout;
+        private Components.ZoomBar zoomBar;
     }
 }

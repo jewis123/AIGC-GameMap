@@ -37,11 +37,11 @@
             // label
             // 
             label.AutoSize = true;
-            label.Location = new Point(45, 4);
+            label.Location = new Point(34, 4);
             label.Name = "label";
-            label.Size = new Size(57, 17);
+            label.Size = new Size(64, 17);
             label.TabIndex = 0;
-            label.Text = "缩放50%";
+            label.Text = "缩放100%";
             // 
             // zoomTrack
             // 
@@ -60,7 +60,7 @@
             // resetBtn
             // 
             resetBtn.BackColor = Color.IndianRed;
-            resetBtn.Location = new Point(14, 0);
+            resetBtn.Location = new Point(3, 0);
             resetBtn.Name = "resetBtn";
             resetBtn.Size = new Size(25, 25);
             resetBtn.TabIndex = 2;

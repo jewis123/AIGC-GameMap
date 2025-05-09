@@ -10,6 +10,7 @@ import base64
 
 COMFYUI_URL = "http://192.168.1.12:8089"
 WORKFLOW_PATH = os.path.join(os.path.dirname(__file__), "workflow", "2dmapIPAdapter2.json")
+g_loras = {"吉卜力":""}
 
 class BatchComfyUIApp:
     def __init__(self, root):
@@ -30,6 +31,16 @@ class BatchComfyUIApp:
         self.save_var = tk.StringVar()
         tk.Entry(frm2, textvariable=self.save_var, width=40).pack(side=tk.LEFT, padx=5)
         tk.Button(frm2, text="选择", command=self.choose_save_dir).pack(side=tk.LEFT)
+
+        # 新增lora选择控件
+        frm3 = tk.Frame(self.root)
+        frm3.pack(pady=10)
+        tk.Label(frm3, text="风格模型:").pack(side=tk.LEFT)
+        self.lora_var = tk.StringVar()
+        self.lora_combo = ttk.Combobox(frm3, textvariable=self.lora_var, values=list(g_loras.keys()), state="readonly", width=20)
+        self.lora_combo.pack(side=tk.LEFT, padx=5)
+        if g_loras:
+            self.lora_combo.current(0)
 
         self.progress = tk.DoubleVar()
         self.progressbar = ttk.Progressbar(self.root, length=500, variable=self.progress, maximum=100)
@@ -83,6 +94,9 @@ class BatchComfyUIApp:
     def start_batch(self):
         img_dir = self.dir_var.get()
         save_dir = self.save_var.get()
+        # 获取lora选择
+        lora_key = self.lora_var.get()
+        lora_value = g_loras.get(lora_key, "")
         if not os.path.isdir(img_dir) or not os.path.isdir(save_dir):
             messagebox.showerror("错误", "请选择有效的图片目录和保存目录！")
             return
@@ -133,6 +147,9 @@ class BatchComfyUIApp:
                 server_fname = fname_to_server.get(fname, fname)
                 workflow = json.loads(json.dumps(workflow_template))
                 workflow["194"]["inputs"]["image"] = server_fname  # 只用文件名
+                # 替换lora_name
+                if "209" in workflow and "inputs" in workflow["209"]:
+                    workflow["209"]["inputs"]["lora_name"] = lora_value
                 prompt = {"prompt": workflow}
                 try:
                     resp = requests.post(f"{COMFYUI_URL}/prompt", json=prompt)
