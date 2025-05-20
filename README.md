@@ -3,3 +3,5 @@
 ### 目录结构
 1. MapGenerator：Winform前端，目的是简化用户端操作。包装comfyui工作流需要上传的内容，并通过requests进行文件上转/下载。
 2. utils：python工具箱，提供一些批处理图片操作、文件操作、批量转绘等功能。
+### 最新情况
+https://gitee.com/Jervie233/aigc_-map
