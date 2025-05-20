@@ -10,7 +10,7 @@ import base64
 
 COMFYUI_URL = "http://192.168.1.12:8089"
 WORKFLOW_PATH = os.path.join(os.path.dirname(__file__), "workflow", "2dmapIPAdapter2.json")
-g_loras = {"吉卜力":""}
+g_loras = {"吉卜力":"flux\\ghibli_fantasy_v1.safetensors","新海诚":"flux\\新海诚风格动漫超精细光影壁纸风_v1.0.safetensors"}
 
 class BatchComfyUIApp:
     def __init__(self, root):

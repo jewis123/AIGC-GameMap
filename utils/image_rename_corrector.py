@@ -14,7 +14,6 @@ from tkinter import filedialog, messagebox, ttk
 import threading
 import xml.etree.ElementTree as ET
 
-IMAGE_EXTS = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
 
 def correct_image_names(root_dir, tmx_dir=None, progress_callback=None):
     changed = 0
@@ -30,7 +29,7 @@ def correct_image_names(root_dir, tmx_dir=None, progress_callback=None):
     total = len(subdirs)
     for idx, subdir in enumerate(subdirs, 1):
         subdir_path = os.path.join(root_dir, subdir)
-        files = [f for f in os.listdir(subdir_path) if f.endswith(IMAGE_EXTS)]
+        files = [f for f in os.listdir(subdir_path)]
         idx_img = 1
         subdir_changed = False
         rename_map = {}  # old_name: new_name

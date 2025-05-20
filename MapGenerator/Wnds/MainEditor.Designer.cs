@@ -430,20 +430,20 @@
             // 
             imgMenu.Items.AddRange(new ToolStripItem[] { deleteImg, openImg });
             imgMenu.Name = "imgMenu";
-            imgMenu.Size = new Size(101, 48);
+            imgMenu.Size = new Size(181, 70);
             // 
             // deleteImg
             // 
             deleteImg.Name = "deleteImg";
-            deleteImg.Size = new Size(100, 22);
+            deleteImg.Size = new Size(180, 22);
             deleteImg.Text = "删除";
             deleteImg.Click += deleteImg_Click;
             // 
             // openImg
             // 
             openImg.Name = "openImg";
-            openImg.Size = new Size(100, 22);
-            openImg.Text = "打开";
+            openImg.Size = new Size(180, 22);
+            openImg.Text = "新标签打开";
             openImg.Click += openImg_Click;
             // 
             // MainEditor

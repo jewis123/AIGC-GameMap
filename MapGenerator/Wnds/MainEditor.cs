@@ -12,7 +12,7 @@ namespace MapGenerator.Wnds
         private ComfyUIClient _comfyUIClient;
         private DrawToImgProcessor _drawToImgProcessor;
         private DrawToImgIPSegProcessor _ipSegProcessor;
-        private InpaintProcessor _inpaintProcessor;
+        private FluxInpaintProcessor _inpaintProcessor;
         private DecoratorInpaintProcessor _decoratorRedrawProgress;
 
         private BaseProcessor curProcessor;
@@ -21,6 +21,7 @@ namespace MapGenerator.Wnds
         private RulerPainting curPaintCav => curTab.Controls[0] as RulerPainting;
         private TabPage curTab => MainViewTab.SelectedTab;
         private RulerPainting lastPaintCav;
+        private Bitmap _lastDrawing;
 
         public MainEditor()
         {
@@ -101,7 +102,7 @@ namespace MapGenerator.Wnds
             // 创建DrawToImgIPSegProcessor实例
             _ipSegProcessor = new DrawToImgIPSegProcessor(ref _comfyUIClient);
             // 使用异步方法处理生成过程
-            _inpaintProcessor = new InpaintProcessor(ref _comfyUIClient);
+            _inpaintProcessor = new FluxInpaintProcessor(ref _comfyUIClient);
             _decoratorRedrawProgress = new DecoratorInpaintProcessor(ref _comfyUIClient);
 
         }
@@ -253,7 +254,7 @@ namespace MapGenerator.Wnds
                 }
 
                 // 获取当前选中的装饰图像
-                Image? decoratorImage = decoratorItem.GetImage();
+                Image? decoratorImage = Image.FromFile(decoratorItem.FilePath);
                 string decoratorName = decoratorItem.GetImgName();
 
                 if (decoratorImage != null)
@@ -292,12 +293,19 @@ namespace MapGenerator.Wnds
             newTab.Text = "New Drawing";
 
             lastPaintCav = curPaintCav;
-            lastPaintCav.DecoratorModeExited += RulerPainting_DecoratorModeExited;
+            lastPaintCav.OnDecoratorModeExited += RulerPainting_DecoratorModeExited;
 
             zoomBar.OnZoomChanged += OnZoomBarValueChanged;
             zoomBar.OnZoomReset += (sender, e) =>
             {
                 curPaintCav?.SetZoomScale(100);
+            };
+
+            curPaintCav.OnResetLastDrawing += (sender, e) =>
+            {
+                curPaintCav.SetDrawingSize(_lastDrawing.Size.Width, _lastDrawing.Size.Height);
+                curPaintCav.DisplayImageOnCanvas(_lastDrawing);
+                curPaintCav.ShowResetButton(false);
             };
 
             this.PromptBox.Hint = "输入提示词....";
@@ -364,11 +372,11 @@ namespace MapGenerator.Wnds
         {
             if (lastPaintCav != null)
             {
-                lastPaintCav.DecoratorModeExited -= RulerPainting_DecoratorModeExited;
+                lastPaintCav.OnDecoratorModeExited -= RulerPainting_DecoratorModeExited;
             }
 
             lastPaintCav = curPaintCav;
-            lastPaintCav.DecoratorModeExited += RulerPainting_DecoratorModeExited;
+            lastPaintCav.OnDecoratorModeExited += RulerPainting_DecoratorModeExited;
 
             zoomBar.SetZoomValue(curPaintCav?.GetCanvasZoomScale() ?? 100);
         }
@@ -787,9 +795,9 @@ namespace MapGenerator.Wnds
         {
             if (sender is CheckableImageItem item)
             {
-                for (int i = 0; i < refTabLayout.Controls.Count; i++)
+                for (int i = 0; i < modelLayout.Controls.Count; i++)
                 {
-                    CheckableImageItem it = (CheckableImageItem)refTabLayout.Controls[i];
+                    CheckableImageItem it = (CheckableImageItem)modelLayout.Controls[i];
                     if (item == it)
                     {
                         if (it.Selected)
@@ -962,7 +970,7 @@ namespace MapGenerator.Wnds
             string outputFile = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}.png");
 
             // 获取画布图像
-            Bitmap canvasImage = curPaintCav.GetCanvasImage();
+            _lastDrawing = curPaintCav.GetCanvasImage();
 
             //填充使用到的笔刷类型到this.PromptBox.Text
             if (this.PromptBox is HintRichTextBox hintbox && hintbox.IsEmpty)
@@ -974,7 +982,7 @@ namespace MapGenerator.Wnds
                 this.PromptBox.Text += $"{name},";
             }
             // 保存为PNG
-            canvasImage.Save(filename, ImageFormat.Png);
+            _lastDrawing.Save(filename, ImageFormat.Png);
 
             // 使用DrawToImgProcessor处理图像
             curProcessor = _drawToImgProcessor;
@@ -982,6 +990,8 @@ namespace MapGenerator.Wnds
 
             if (!string.IsNullOrEmpty(resultImagePath))
             {
+                curPaintCav.ShowResetButton(true);
+
                 // 显示在画布上
                 try
                 {
@@ -996,6 +1006,7 @@ namespace MapGenerator.Wnds
                 }
                 catch (Exception ex)
                 {
+                    curPaintCav.ShowResetButton(false);
                     MessageBox.Show(this, $"无法显示生成的图像: {ex.Message}", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 finally
@@ -1042,10 +1053,10 @@ namespace MapGenerator.Wnds
             string outputFile = AppSettings.GetTmpMapOutputPath($"{this.curTab.Text}.png");
 
             // 获取画布图像
-            Bitmap canvasImage = curPaintCav.GetCanvasImage();
+            _lastDrawing = curPaintCav.GetCanvasImage();
 
             // 保存为PNG
-            canvasImage.Save(filename, ImageFormat.Png);
+            _lastDrawing.Save(filename, ImageFormat.Png);
 
 
 
@@ -1055,6 +1066,7 @@ namespace MapGenerator.Wnds
 
             if (!string.IsNullOrEmpty(resultImagePath))
             {
+                curPaintCav.ShowResetButton(true);
                 // 显示在画布上
                 try
                 {
@@ -1069,6 +1081,7 @@ namespace MapGenerator.Wnds
                 }
                 catch (Exception ex)
                 {
+                    curPaintCav.ShowResetButton(false);
                     MessageBox.Show(this, $"无法显示生成的图像: {ex.Message}", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 finally
@@ -1109,7 +1122,7 @@ namespace MapGenerator.Wnds
             }
 
             // 创建装饰物区域的遮罩
-            Bitmap maskImage = new Bitmap(canvasImage.Width, canvasImage.Height);
+            Bitmap maskImage = new Bitmap(canvasImage.Width + 10, canvasImage.Height);
 
             // 使用Graphics绘制装饰物的遮罩
             using (Graphics g = Graphics.FromImage(maskImage))
@@ -1126,25 +1139,26 @@ namespace MapGenerator.Wnds
                     // 计算装饰物在画布上的位置和大小
                     int x = item.Location.X - item.Size / 2;
                     int y = item.Location.Y - item.Size / 2;
-                    int size = item.Size;
+                    int size = item.Size+  10;
 
                     // 绘制白色填充区域
                     using (Brush brush = new SolidBrush(Color.White))
                     {
-                        g.FillEllipse(brush, x, y, size, size);
+                        g.FillRectangle(brush, x, y, size, size);
                     }
                 }
             }
 
             // 保存文件路径
-            string canvasPath = AppSettings.GetMapOutputPath($"{this.curTab.Text}.png");
+            string outputSavePath = AppSettings.GetMapOutputPath($"{this.curTab.Text}.png");
             string maskPath = AppSettings.GetTmpMaskPath($"{this.curTab.Text}_decorator_mask.png");
 
             // 保存遮罩图像
             maskImage.Save(maskPath, ImageFormat.Png);
 
             //临时
-            canvasImage.Save(canvasPath, ImageFormat.Png);
+            canvasImage.Save(outputSavePath, ImageFormat.Png);
+            MessageBox.Show(this, $"装饰物融合完成！保存路径{outputSavePath}", "操作成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             ResetControl();
             //临时end
 

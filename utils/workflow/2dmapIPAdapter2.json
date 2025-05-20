@@ -1,11 +1,11 @@
 {
   "194": {
     "inputs": {
-      "image": "item.png"
+      "image": "goblin_toy.png"
     },
     "class_type": "LoadImage",
     "_meta": {
-      "title": "Load Image"
+      "title": "原图"
     }
   },
   "195": {
@@ -19,15 +19,12 @@
   },
   "199": {
     "inputs": {
-      "text": "",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "text": [
+        "278",
+        0
+      ],
       "clip": [
-        "209",
+        "277",
         1
       ]
     },
@@ -38,15 +35,9 @@
   },
   "201": {
     "inputs": {
-      "text": "blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.",
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
+      "text": "blurry, glitches, artifact, distorted, malformed, dirt, eyeglasses,human,people,person,girl,boy,man,woman.embedding:easynegative",
       "clip": [
-        "209",
+        "277",
         1
       ]
     },
@@ -55,25 +46,9 @@
       "title": "CLIP Text Encode (Prompt)"
     }
   },
-  "202": {
-    "inputs": {
-      "conditioning_1": [
-        "199",
-        0
-      ],
-      "conditioning_2": [
-        "246",
-        0
-      ]
-    },
-    "class_type": "ConditioningCombine",
-    "_meta": {
-      "title": "Conditioning (Combine)"
-    }
-  },
   "204": {
     "inputs": {
-      "seed": 177908236677323,
+      "seed": 917828312996601,
       "steps": 25,
       "cfg": 7,
       "sampler_name": "dpmpp_2m",
@@ -103,30 +78,11 @@
   },
   "208": {
     "inputs": {
-      "clip_name": "CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
+      "clip_name": "ipadapter_clipvision\\CLIP-ViT-bigG-14-laion2B-39B-b160k.safetensors"
     },
     "class_type": "CLIPVisionLoader",
     "_meta": {
       "title": "Load CLIP Vision"
-    }
-  },
-  "209": {
-    "inputs": {
-      "lora_name": "xl\\PaperCut_Tr-PaperCutout style.safetensors",
-      "strength_model": 1.2000000000000002,
-      "strength_clip": 1,
-      "model": [
-        "195",
-        0
-      ],
-      "clip": [
-        "195",
-        1
-      ]
-    },
-    "class_type": "LoraLoader",
-    "_meta": {
-      "title": "Load LoRA"
     }
   },
   "212": {
@@ -149,7 +105,7 @@
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "252",
+        "262",
         0
       ]
     },
@@ -158,33 +114,13 @@
       "title": "Save Image"
     }
   },
-  "246": {
-    "inputs": {
-      "text": "",
-      "seed": 420026263802139,
-      "speak_and_recognation": {
-        "__value__": [
-          false,
-          true
-        ]
-      },
-      "clip": [
-        "209",
-        1
-      ]
-    },
-    "class_type": "SixGodPrompts",
-    "_meta": {
-      "title": "六神clip文本编码(自动翻译)"
-    }
-  },
   "248": {
     "inputs": {
       "interpolation": "LANCZOS",
       "crop_position": "top",
       "sharpening": 0.20000000000000004,
       "image": [
-        "194",
+        "264",
         0
       ]
     },
@@ -218,7 +154,7 @@
       "divisible_by": 2,
       "crop": "disabled",
       "image": [
-        "194",
+        "264",
         0
       ]
     },
@@ -242,7 +178,7 @@
       "divisible_by": 2,
       "crop": "disabled",
       "image": [
-        "212",
+        "266",
         0
       ]
     },
@@ -254,7 +190,7 @@
   "253": {
     "inputs": {
       "image": [
-        "194",
+        "264",
         0
       ]
     },
@@ -281,7 +217,7 @@
       "sharpening": 0,
       "layer_weights": "",
       "model": [
-        "209",
+        "277",
         0
       ],
       "image": [
@@ -304,7 +240,7 @@
       "start_percent": 0,
       "end_percent": 1,
       "positive": [
-        "202",
+        "199",
         0
       ],
       "negative": [
@@ -331,7 +267,7 @@
   },
   "258": {
     "inputs": {
-      "control_net_name": "xinsir_controlnet_union-sdxl_promax.safetensors"
+      "control_net_name": "xl\\xinsir_controlnet_union-sdxl_promax.safetensors"
     },
     "class_type": "ControlNetLoader",
     "_meta": {
@@ -350,6 +286,130 @@
     "class_type": "AIO_Preprocessor",
     "_meta": {
       "title": "AIO Aux Preprocessor"
+    }
+  },
+  "262": {
+    "inputs": {
+      "model": "RMBG-2.0",
+      "sensitivity": 1,
+      "process_res": 1024,
+      "mask_blur": 0,
+      "mask_offset": 0,
+      "invert_output": false,
+      "refine_foreground": false,
+      "background": "Alpha",
+      "background_color": "#222222",
+      "image": [
+        "252",
+        0
+      ]
+    },
+    "class_type": "RMBG",
+    "_meta": {
+      "title": "Remove Background (RMBG)"
+    }
+  },
+  "263": {
+    "inputs": {
+      "rem_mode": "RMBG-1.4",
+      "image_output": "Preview",
+      "save_prefix": "ComfyUI",
+      "torchscript_jit": false,
+      "images": [
+        "194",
+        0
+      ]
+    },
+    "class_type": "easy imageRemBg",
+    "_meta": {
+      "title": "Image Remove Bg"
+    }
+  },
+  "264": {
+    "inputs": {
+      "fill_background": true,
+      "background_color": "#ffffff",
+      "RGBA_image": [
+        "263",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageRemoveAlpha",
+    "_meta": {
+      "title": "LayerUtility: ImageRemoveAlpha"
+    }
+  },
+  "266": {
+    "inputs": {
+      "upscale_model": [
+        "267",
+        0
+      ],
+      "image": [
+        "212",
+        0
+      ]
+    },
+    "class_type": "ImageUpscaleWithModel",
+    "_meta": {
+      "title": "Upscale Image (using Model)"
+    }
+  },
+  "267": {
+    "inputs": {
+      "model_name": "4x-UltraSharp.pth"
+    },
+    "class_type": "UpscaleModelLoader",
+    "_meta": {
+      "title": "Load Upscale Model"
+    }
+  },
+  "270": {
+    "inputs": {
+      "text": [
+        "278",
+        0
+      ]
+    },
+    "class_type": "ShowText|pysssss",
+    "_meta": {
+      "title": "Show Text 🐍"
+    }
+  },
+  "277": {
+    "inputs": {
+      "lora_name": "xl\\ghibli_Tr_ghibli.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "force_fetch": false,
+      "append_loraname_if_empty": false,
+      "model": [
+        "195",
+        0
+      ],
+      "clip": [
+        "195",
+        1
+      ]
+    },
+    "class_type": "LoraLoaderVanilla",
+    "_meta": {
+      "title": "LoraLoaderVanilla"
+    }
+  },
+  "278": {
+    "inputs": {
+      "selector": ":",
+      "weight": 1.1,
+      "ensure_comma": true,
+      "tags_list": [
+        "277",
+        3
+      ]
+    },
+    "class_type": "TagsSelector",
+    "_meta": {
+      "title": "TagsSelector"
     }
   }
 }

@@ -1,0 +1,478 @@
+{
+  "137": {
+    "inputs": {
+      "scheduler": "normal",
+      "steps": 30,
+      "denoise": 1,
+      "model": [
+        "208",
+        0
+      ]
+    },
+    "class_type": "BasicScheduler",
+    "_meta": {
+      "title": "BasicScheduler"
+    }
+  },
+  "138": {
+    "inputs": {
+      "noise": [
+        "139",
+        0
+      ],
+      "guider": [
+        "140",
+        0
+      ],
+      "sampler": [
+        "142",
+        0
+      ],
+      "sigmas": [
+        "137",
+        0
+      ],
+      "latent_image": [
+        "215",
+        0
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced"
+    }
+  },
+  "139": {
+    "inputs": {
+      "noise_seed": 965756826244786
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise"
+    }
+  },
+  "140": {
+    "inputs": {
+      "model": [
+        "208",
+        0
+      ],
+      "conditioning": [
+        "189",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "BasicGuider"
+    }
+  },
+  "142": {
+    "inputs": {
+      "sampler_name": "euler"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect"
+    }
+  },
+  "144": {
+    "inputs": {
+      "guidance": 30,
+      "conditioning": [
+        "145",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "145": {
+    "inputs": {
+      "text": "<fo>2D scene map, isometric fixed equal - height perspective, photograghy, masterpiece, 8k, clear details, beautify scenary, sunny day.",
+      "clip": [
+        "155",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "146": {
+    "inputs": {
+      "samples": [
+        "138",
+        0
+      ],
+      "vae": [
+        "147",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "147": {
+    "inputs": {
+      "vae_name": "flux-ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "148": {
+    "inputs": {
+      "clip_name": "flux\\sigclip_vision_patch14_384.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "149": {
+    "inputs": {
+      "style_model_name": "flux1-redux-dev.safetensors"
+    },
+    "class_type": "StyleModelLoader",
+    "_meta": {
+      "title": "Load Style Model"
+    }
+  },
+  "150": {
+    "inputs": {
+      "strength": [
+        "221",
+        0
+      ],
+      "strength_type": "multiply",
+      "conditioning": [
+        "144",
+        0
+      ],
+      "style_model": [
+        "149",
+        0
+      ],
+      "clip_vision_output": [
+        "152",
+        0
+      ]
+    },
+    "class_type": "StyleModelApply",
+    "_meta": {
+      "title": "Apply Style Model"
+    }
+  },
+  "151": {
+    "inputs": {
+      "image": "lmdl_kcmk_x_3x4.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "原图"
+    }
+  },
+  "152": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "148",
+        0
+      ],
+      "image": [
+        "209",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP Vision Encode"
+    }
+  },
+  "153": {
+    "inputs": {
+      "model_path": "svdq-int4-flux.1-dev",
+      "cache_threshold": 0,
+      "attention": "nunchaku-fp16",
+      "cpu_offload": "auto",
+      "device_id": 0,
+      "data_type": "bfloat16",
+      "i2f_mode": "enabled"
+    },
+    "class_type": "NunchakuFluxDiTLoader",
+    "_meta": {
+      "title": "Nunchaku FLUX DiT Loader"
+    }
+  },
+  "155": {
+    "inputs": {
+      "model_type": "flux",
+      "text_encoder1": "flux\\clip_l.safetensors",
+      "text_encoder2": "flux\\t5xxl_fp8_e4m3fn.safetensors",
+      "t5_min_length": 512,
+      "use_4bit_t5": "disable",
+      "int4_model": "none"
+    },
+    "class_type": "NunchakuTextEncoderLoader",
+    "_meta": {
+      "title": "Nunchaku Text Encoder Loader"
+    }
+  },
+  "157": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "146",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "184": {
+    "inputs": {
+      "pixels": [
+        "209",
+        0
+      ],
+      "vae": [
+        "147",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  },
+  "185": {
+    "inputs": {
+      "lora_name": "flux1\\蔚蓝Blue 2D游戏地图FLUX2.0.safetensors",
+      "lora_strength": 0.8,
+      "model": [
+        "153",
+        0
+      ]
+    },
+    "class_type": "NunchakuFluxLoraLoader",
+    "_meta": {
+      "title": "Nunchaku FLUX.1 LoRA Loader"
+    }
+  },
+  "188": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "148",
+        0
+      ],
+      "image": [
+        "210",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP Vision Encode"
+    }
+  },
+  "189": {
+    "inputs": {
+      "strength": [
+        "212",
+        0
+      ],
+      "strength_type": "multiply",
+      "conditioning": [
+        "150",
+        0
+      ],
+      "style_model": [
+        "149",
+        0
+      ],
+      "clip_vision_output": [
+        "188",
+        0
+      ]
+    },
+    "class_type": "StyleModelApply",
+    "_meta": {
+      "title": "Apply Style Model"
+    }
+  },
+  "190": {
+    "inputs": {
+      "image": "建筑.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "参考图"
+    }
+  },
+  "207": {
+    "inputs": {
+      "value": 0.5
+    },
+    "class_type": "easy float",
+    "_meta": {
+      "title": "整图重绘幅度"
+    }
+  },
+  "208": {
+    "inputs": {
+      "lora_name": "flux1\\新海诚风格动漫超精细光影壁纸风_v1.0.safetensors",
+      "lora_strength": 0.8,
+      "model": [
+        "185",
+        0
+      ]
+    },
+    "class_type": "NunchakuFluxLoraLoader",
+    "_meta": {
+      "title": "Nunchaku FLUX.1 LoRA Loader"
+    }
+  },
+  "209": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "interpolation": "bicubic",
+      "method": "keep proportion",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "151",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  },
+  "210": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "interpolation": "bicubic",
+      "method": "keep proportion",
+      "condition": "always",
+      "multiple_of": 0,
+      "image": [
+        "190",
+        0
+      ]
+    },
+    "class_type": "ImageResize+",
+    "_meta": {
+      "title": "🔧 Image Resize"
+    }
+  },
+  "212": {
+    "inputs": {
+      "a": [
+        "207",
+        0
+      ],
+      "b": 1,
+      "operation": "multiply"
+    },
+    "class_type": "easy mathFloat",
+    "_meta": {
+      "title": "参考图系数调整"
+    }
+  },
+  "215": {
+    "inputs": {
+      "width": [
+        "216",
+        0
+      ],
+      "height": [
+        "216",
+        1
+      ],
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "216": {
+    "inputs": {
+      "image": [
+        "151",
+        0
+      ]
+    },
+    "class_type": "GetImageSize+",
+    "_meta": {
+      "title": "🔧 Get Image Size"
+    }
+  },
+  "217": {
+    "inputs": {
+      "value": 0.9
+    },
+    "class_type": "easy float",
+    "_meta": {
+      "title": "原图参考系数调整"
+    }
+  },
+  "219": {
+    "inputs": {
+      "a": 1,
+      "b": [
+        "207",
+        0
+      ],
+      "operation": "subtract"
+    },
+    "class_type": "easy mathFloat",
+    "_meta": {
+      "title": "Math Float"
+    }
+  },
+  "220": {
+    "inputs": {
+      "a": [
+        "217",
+        0
+      ],
+      "b": [
+        "219",
+        0
+      ],
+      "operation": "multiply"
+    },
+    "class_type": "easy mathFloat",
+    "_meta": {
+      "title": "Math Float"
+    }
+  },
+  "221": {
+    "inputs": {
+      "a": [
+        "220",
+        0
+      ],
+      "b": 0.1,
+      "operation": "add"
+    },
+    "class_type": "easy mathFloat",
+    "_meta": {
+      "title": "Math Float"
+    }
+  }
+}

@@ -4,6 +4,11 @@
     {
         public event EventHandler<int>? OnZoomChanged;
         public event EventHandler? OnZoomReset;
+        public string LabelText
+        {
+            get => label.Text;
+            set => label.Text = value;
+        }
 
         public ZoomBar()
         {
@@ -12,7 +17,7 @@
             zoomTrack.ValueChanged += (sender, e) =>
             {
                 OnZoomChanged?.Invoke(this, zoomTrack.Value);
-                this.label.Text = $"缩放{zoomTrack.Value}%";
+                this.label.Text = $"{LabelText}{zoomTrack.Value}%";
             };
 
             // 禁止鼠标滚轮改变值
@@ -25,16 +30,16 @@
             resetBtn.Click += (s, e) =>
             {
                 OnZoomReset?.Invoke(this, EventArgs.Empty);
-                this.label.Text = $"缩放100%";
+                this.label.Text = $"{LabelText}100%";
             };
 
-            this.label.Text = $"缩放100%";
+            this.label.Text = $"{LabelText}100%";
         }
 
         internal void SetZoomValue(float v)
         {
             zoomTrack.Value = (int)(v * 100);
-            this.label.Text = $"缩放{zoomTrack.Value}%";
+            this.label.Text = $"{LabelText}{zoomTrack.Value}%";
         }
     }
 }

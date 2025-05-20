@@ -1,8 +1,10 @@
 {
-  "dir_path": "F:/WorkSpace/my_h5_env/raw_resources/map/baseTiles",
-  "preload_dir": "F:/WorkSpace/my_h5_env/raw_resources/map/preload",
-  "tmx_dir": "F:/WorkSpace/my_h5_env/raw_resources/map",
-  "save_dir": "F:/WorkSpace/MapGen/MapGenerator/assets/project_raw",
-  "whole_img_path": "F:/WorkSpace/MapGen/MapGenerator/assets/art_changes/dd/lmdl_kcmk_x_3x4.png",
-  "split_save_dir": "F:/WorkSpace/my_h5_env/raw_resources/map/baseTiles/lmdl_kcmk_x"
+  "dir_path": "G:/WorkSpace/MYH5_Res/web/resource/tiled/baseTiles",
+  "preload_dir": "G:/WorkSpace/MYH5_Res/web/resource/tiled/preload",
+  "tmx_dir": "G:/WorkSpace/MYH5_Res/web/resource/tiled",
+  "save_dir": "G:/WorkSpace/raw",
+  "whole_img_path": "G:/WorkSpace/lmdl_kcmk_x_3x4.png",
+  "split_save_dir": "G:/WorkSpace/test",
+  "stitch_width": "",
+  "stitch_height": ""
 }

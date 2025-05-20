@@ -32,15 +32,15 @@
             RightSideLayOut = new TableLayoutPanel();
             PromptBox = new HintRichTextBox();
             tabs = new TabControl();
-            refTab = new TabPage();
-            refLayout = new FlowLayoutPanel();
-            refSearch = new HintRichTextBox();
             templateRefTab = new TabPage();
             templateLayout = new FlowLayoutPanel();
             templateSearch = new HintRichTextBox();
             rawTab = new TabPage();
             rawImageLayout = new FlowLayoutPanel();
             rawSearch = new HintRichTextBox();
+            refTab = new TabPage();
+            refLayout = new FlowLayoutPanel();
+            hintRichTextBox1 = new HintRichTextBox();
             recordTab = new TabPage();
             recordsLayout = new FlowLayoutPanel();
             recordSearch = new HintRichTextBox();
@@ -66,11 +66,15 @@
             clearMapMenuItem = new ToolStripMenuItem();
             toolStripSeparator1 = new ToolStripSeparator();
             zoomBar = new Components.ZoomBar();
+            imgMenu = new ContextMenuStrip(components);
+            deleteImg = new ToolStripMenuItem();
+            openImg = new ToolStripMenuItem();
+            denoiseBar = new Components.ZoomBar();
             RightSideLayOut.SuspendLayout();
             tabs.SuspendLayout();
-            refTab.SuspendLayout();
             templateRefTab.SuspendLayout();
             rawTab.SuspendLayout();
+            refTab.SuspendLayout();
             recordTab.SuspendLayout();
             Buttons.SuspendLayout();
             flowLayoutPanel3.SuspendLayout();
@@ -79,6 +83,7 @@
             flowLayoutPanel1.SuspendLayout();
             menuStrip.SuspendLayout();
             curMapContextMenu.SuspendLayout();
+            imgMenu.SuspendLayout();
             SuspendLayout();
             // 
             // RightSideLayOut
@@ -110,9 +115,9 @@
             // tabs
             // 
             tabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tabs.Controls.Add(refTab);
             tabs.Controls.Add(templateRefTab);
             tabs.Controls.Add(rawTab);
+            tabs.Controls.Add(refTab);
             tabs.Controls.Add(recordTab);
             tabs.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
             tabs.Location = new Point(3, 3);
@@ -120,38 +125,6 @@
             tabs.SelectedIndex = 0;
             tabs.Size = new Size(298, 323);
             tabs.TabIndex = 1;
-            // 
-            // refTab
-            // 
-            refTab.Controls.Add(refLayout);
-            refTab.Controls.Add(refSearch);
-            refTab.Location = new Point(4, 26);
-            refTab.Name = "refTab";
-            refTab.Size = new Size(290, 293);
-            refTab.TabIndex = 1;
-            refTab.Text = "特征参考";
-            refTab.UseVisualStyleBackColor = true;
-            // 
-            // refLayout
-            // 
-            refLayout.Dock = DockStyle.Fill;
-            refLayout.Location = new Point(0, 26);
-            refLayout.Name = "refLayout";
-            refLayout.Size = new Size(290, 267);
-            refLayout.TabIndex = 1;
-            // 
-            // refSearch
-            // 
-            refSearch.Dock = DockStyle.Top;
-            refSearch.ForeColor = SystemColors.GrayText;
-            refSearch.Hint = null;
-            refSearch.Location = new Point(0, 0);
-            refSearch.Margin = new Padding(2, 3, 2, 3);
-            refSearch.Name = "refSearch";
-            refSearch.Size = new Size(290, 26);
-            refSearch.TabIndex = 11;
-            refSearch.Text = "";
-            refSearch.Visible = false;
             // 
             // templateRefTab
             // 
@@ -166,12 +139,11 @@
             // 
             // templateLayout
             // 
-            templateLayout.AutoScroll = true;
             templateLayout.Dock = DockStyle.Fill;
             templateLayout.Location = new Point(0, 26);
             templateLayout.Name = "templateLayout";
             templateLayout.Size = new Size(290, 267);
-            templateLayout.TabIndex = 0;
+            templateLayout.TabIndex = 1;
             // 
             // templateSearch
             // 
@@ -194,7 +166,7 @@
             rawTab.Padding = new Padding(3);
             rawTab.Size = new Size(290, 293);
             rawTab.TabIndex = 3;
-            rawTab.Text = "原始";
+            rawTab.Text = "原始图";
             rawTab.UseVisualStyleBackColor = true;
             // 
             // rawImageLayout
@@ -217,6 +189,38 @@
             rawSearch.Size = new Size(284, 26);
             rawSearch.TabIndex = 12;
             rawSearch.Text = "";
+            // 
+            // refTab
+            // 
+            refTab.Controls.Add(refLayout);
+            refTab.Controls.Add(hintRichTextBox1);
+            refTab.Location = new Point(4, 26);
+            refTab.Name = "refTab";
+            refTab.Padding = new Padding(3);
+            refTab.Size = new Size(290, 293);
+            refTab.TabIndex = 5;
+            refTab.Text = "特征图";
+            refTab.UseVisualStyleBackColor = true;
+            // 
+            // refLayout
+            // 
+            refLayout.AutoScroll = true;
+            refLayout.Dock = DockStyle.Fill;
+            refLayout.Location = new Point(3, 32);
+            refLayout.Name = "refLayout";
+            refLayout.Size = new Size(284, 258);
+            refLayout.TabIndex = 1;
+            // 
+            // hintRichTextBox1
+            // 
+            hintRichTextBox1.Dock = DockStyle.Top;
+            hintRichTextBox1.ForeColor = SystemColors.GrayText;
+            hintRichTextBox1.Hint = null;
+            hintRichTextBox1.Location = new Point(3, 3);
+            hintRichTextBox1.Name = "hintRichTextBox1";
+            hintRichTextBox1.Size = new Size(284, 29);
+            hintRichTextBox1.TabIndex = 0;
+            hintRichTextBox1.Text = "";
             // 
             // recordTab
             // 
@@ -254,7 +258,7 @@
             // Buttons
             // 
             Buttons.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            Buttons.AutoScroll = true;
+            Buttons.Controls.Add(denoiseBar);
             Buttons.Controls.Add(flowLayoutPanel3);
             Buttons.Controls.Add(flowLayoutPanel2);
             Buttons.Location = new Point(636, 489);
@@ -267,9 +271,9 @@
             flowLayoutPanel3.AutoSize = true;
             flowLayoutPanel3.Controls.Add(label22);
             flowLayoutPanel3.Controls.Add(genCnt);
-            flowLayoutPanel3.Location = new Point(12, 38);
+            flowLayoutPanel3.Location = new Point(0, 57);
             flowLayoutPanel3.Name = "flowLayoutPanel3";
-            flowLayoutPanel3.Size = new Size(271, 33);
+            flowLayoutPanel3.Size = new Size(301, 35);
             flowLayoutPanel3.TabIndex = 5;
             // 
             // label22
@@ -293,11 +297,11 @@
             // 
             // flowLayoutPanel2
             // 
-            flowLayoutPanel2.Anchor = AnchorStyles.None;
+            flowLayoutPanel2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             flowLayoutPanel2.AutoSize = true;
             flowLayoutPanel2.Controls.Add(btnGen);
             flowLayoutPanel2.Controls.Add(btnStop);
-            flowLayoutPanel2.Location = new Point(9, 118);
+            flowLayoutPanel2.Location = new Point(3, 118);
             flowLayoutPanel2.Name = "flowLayoutPanel2";
             flowLayoutPanel2.Size = new Size(180, 30);
             flowLayoutPanel2.TabIndex = 4;
@@ -438,6 +442,36 @@
             zoomBar.Size = new Size(255, 29);
             zoomBar.TabIndex = 11;
             // 
+            // imgMenu
+            // 
+            imgMenu.Items.AddRange(new ToolStripItem[] { deleteImg, openImg });
+            imgMenu.Name = "imgMenu";
+            imgMenu.Size = new Size(137, 48);
+            // 
+            // deleteImg
+            // 
+            deleteImg.Name = "deleteImg";
+            deleteImg.Size = new Size(136, 22);
+            deleteImg.Text = "删除";
+            deleteImg.Click += deleteImg_Click;
+            // 
+            // openImg
+            // 
+            openImg.Name = "openImg";
+            openImg.Size = new Size(136, 22);
+            openImg.Text = "新标签打开";
+            openImg.Click += openImg_Click;
+            // 
+            // denoiseBar
+            // 
+            denoiseBar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            denoiseBar.BackColor = SystemColors.Control;
+            denoiseBar.Location = new Point(3, 3);
+            denoiseBar.MinimumSize = new Size(0, 29);
+            denoiseBar.Name = "denoiseBar";
+            denoiseBar.Size = new Size(255, 29);
+            denoiseBar.TabIndex = 12;
+            // 
             // StyleChangeWnd
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
@@ -454,9 +488,9 @@
             Load += Enter_Load;
             RightSideLayOut.ResumeLayout(false);
             tabs.ResumeLayout(false);
-            refTab.ResumeLayout(false);
             templateRefTab.ResumeLayout(false);
             rawTab.ResumeLayout(false);
+            refTab.ResumeLayout(false);
             recordTab.ResumeLayout(false);
             Buttons.ResumeLayout(false);
             Buttons.PerformLayout();
@@ -468,6 +502,7 @@
             menuStrip.ResumeLayout(false);
             menuStrip.PerformLayout();
             curMapContextMenu.ResumeLayout(false);
+            imgMenu.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -476,7 +511,6 @@
 
         private TableLayoutPanel RightSideLayOut;
         private TabControl tabs;
-        private TabPage refTab;
         private TabPage templateRefTab;
         private HintRichTextBox PromptBox;
         private Panel Buttons;
@@ -497,7 +531,6 @@
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripMenuItem renameMapMenuItem;
         private ToolStripMenuItem closeMapMenuItem;
-        private FlowLayoutPanel templateLayout;
         private TabPage rawTab;
         private FlowLayoutPanel flowLayoutPanel3;
         private Label label22;
@@ -505,11 +538,17 @@
         private FlowLayoutPanel rawImageLayout;
         private TabPage recordTab;
         private FlowLayoutPanel recordsLayout;
-        private HintRichTextBox refSearch;
         private HintRichTextBox templateSearch;
         private HintRichTextBox rawSearch;
         private HintRichTextBox recordSearch;
-        private FlowLayoutPanel refLayout;
         private Components.ZoomBar zoomBar;
+        private ContextMenuStrip imgMenu;
+        private ToolStripMenuItem deleteImg;
+        private ToolStripMenuItem openImg;
+        private FlowLayoutPanel templateLayout;
+        private TabPage refTab;
+        private HintRichTextBox hintRichTextBox1;
+        private FlowLayoutPanel refLayout;
+        private Components.ZoomBar denoiseBar;
     }
 }

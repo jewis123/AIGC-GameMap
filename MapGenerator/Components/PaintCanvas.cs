@@ -60,13 +60,10 @@ namespace MapGenerator.Components
         private Image? _currentDecorator = null;
         private int _decoratorSize = 50; // 默认大小
         private readonly int _minDecoratorSize = 10; // 最小大小
-        private readonly int _maxDecoratorSize = 100; // 最大大小
+        private readonly int _maxDecoratorSize = 256; // 最大大小
         private Point _currentMousePos = Point.Empty;
         private List<DecoratorItem> _decoratorItems = new List<DecoratorItem>();
         private string _decoratorName = "";
-        // 添加originalDecorators字段，用于存储原始装饰物数据
-        private List<DecoratorItem> originalDecorators = new List<DecoratorItem>(); // 存储原始装饰物数据
-
         private bool _isLocked = false; // 画布锁定状态
         private int[] originSize = [512, 512];
 
@@ -307,16 +304,30 @@ namespace MapGenerator.Components
                 int scaledX = _currentMousePos.X - _decoratorSize / 2;
                 int scaledY = _currentMousePos.Y - _decoratorSize / 2;
 
-                ColorMatrix cm = new ColorMatrix();
-                cm.Matrix33 = 0.5f; // 半透明
-                using (ImageAttributes imgAttr = new ImageAttributes())
+                // 先生成缩放后的高质量Bitmap
+                using (Bitmap scaledBmp = new Bitmap(_decoratorSize, _decoratorSize))
                 {
-                    imgAttr.SetColorMatrix(cm);
-                    e.Graphics.DrawImage(_currentDecorator,
-                        new Rectangle(scaledX, scaledY, _decoratorSize, _decoratorSize),
-                        0, 0, _currentDecorator.Width, _currentDecorator.Height,
-                        GraphicsUnit.Pixel,
-                        imgAttr);
+                    using (Graphics gBmp = Graphics.FromImage(scaledBmp))
+                    {
+                        gBmp.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        gBmp.SmoothingMode = SmoothingMode.AntiAlias;
+                        gBmp.Clear(Color.Transparent);
+                        gBmp.DrawImage(_currentDecorator, 0, 0, _decoratorSize, _decoratorSize);
+                    }
+
+                    ColorMatrix cm = new ColorMatrix();
+                    cm.Matrix33 = 0.5f; // 半透明
+                    using (ImageAttributes imgAttr = new ImageAttributes())
+                    {
+                        imgAttr.SetColorMatrix(cm);
+                        e.Graphics.DrawImage(
+                            scaledBmp,
+                            new Rectangle(scaledX, scaledY, _decoratorSize, _decoratorSize),
+                            0, 0, _decoratorSize, _decoratorSize,
+                            GraphicsUnit.Pixel,
+                            imgAttr
+                        );
+                    }
                 }
             }
 
@@ -870,7 +881,7 @@ namespace MapGenerator.Components
                 }
 
                 // 绘制所有装饰（使用原始数据）
-                foreach (var item in originalDecorators)
+                foreach (var item in _decoratorItems)
                 {
                     int x = item.Location.X - item.Size / 2;
                     int y = item.Location.Y - item.Size / 2;

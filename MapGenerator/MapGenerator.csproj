@@ -10,22 +10,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="assets\**" />
+    <Compile Remove="bin\**" />
     <Compile Remove="tmp\**" />
+    <EmbeddedResource Remove="assets\**" />
+    <EmbeddedResource Remove="bin\**" />
     <EmbeddedResource Remove="tmp\**" />
+    <None Remove="assets\**" />
+    <None Remove="bin\**" />
     <None Remove="tmp\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="assets\art_changes\dsds\bossditu-kuafuzhengduo.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="ReaLTaiizor" Version="3.7.9.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="assets\output\map\comfyui\" />
-    <Folder Include="assets\output\map\draw\" />
   </ItemGroup>
 
   <ItemGroup>

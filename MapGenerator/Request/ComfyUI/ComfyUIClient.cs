@@ -16,8 +16,10 @@ namespace MapGenerator.Request.ComfyUI
         private readonly HttpClient _httpClient;
         private readonly string _serverUrl;
 
-        public ComfyUIClient(string serverUrl = "http://192.168.1.12:8089")
+        public ComfyUIClient(string serverUrl = "")
         {
+            if (string.IsNullOrEmpty(serverUrl)) 
+                serverUrl = AppSettings.comfyuiServerUrl;
             _httpClient = new HttpClient();
             _serverUrl = serverUrl;
         }

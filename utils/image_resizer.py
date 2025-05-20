@@ -12,6 +12,8 @@ class ImageResizerApp:
         self.img_path = StringVar()
         self.save_dir = StringVar()
         self.target_pixel = IntVar(value=512)
+        self.force_width = IntVar(value=0)   # 新增：强制宽
+        self.force_height = IntVar(value=0)  # 新增：强制高
         self.progress = IntVar(value=0)
         self.total = IntVar(value=1)
 
@@ -37,6 +39,15 @@ class ImageResizerApp:
         pixel_frame.pack(fill='x', pady=5)
         Label(pixel_frame, text='目标像素(最长边):').pack(side='left', padx=2)
         Entry(pixel_frame, textvariable=self.target_pixel, width=10).pack(side='left', padx=2)
+
+        # 新增：强制宽高设置
+        force_size_frame = Frame(master)
+        force_size_frame.pack(fill='x', pady=5)
+        Label(force_size_frame, text='强制宽:').pack(side='left', padx=2)
+        Entry(force_size_frame, textvariable=self.force_width, width=8).pack(side='left', padx=2)
+        Label(force_size_frame, text='强制高:').pack(side='left', padx=2)
+        Entry(force_size_frame, textvariable=self.force_height, width=8).pack(side='left', padx=2)
+        Label(force_size_frame, text='(如需固定宽高缩放请填写)').pack(side='left', padx=2)
 
         # 按钮区
         btn_frame = Frame(master)
@@ -79,12 +90,18 @@ class ImageResizerApp:
         try:
             img = Image.open(img_path)
             w, h = img.size
-            if w >= h:
-                new_w = target_pixel
-                new_h = int(h * target_pixel / w)
+            # 新增：强制宽高逻辑
+            fw = self.force_width.get()
+            fh = self.force_height.get()
+            if fw > 0 and fh > 0:
+                new_w, new_h = fw, fh
             else:
-                new_h = target_pixel
-                new_w = int(w * target_pixel / h)
+                if w >= h:
+                    new_w = target_pixel
+                    new_h = int(h * target_pixel / w)
+                else:
+                    new_h = target_pixel
+                    new_w = int(w * target_pixel / h)
             img = img.resize((new_w, new_h), Image.LANCZOS)
             base = os.path.basename(img_path)
             save_path = os.path.join(save_dir, base)

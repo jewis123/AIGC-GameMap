@@ -244,9 +244,9 @@ class ImageStitcherApp:
         tmx_tile_ids = self.get_tmx_tile_ids(folder_name)
         def is_valid_image(f):
             name, ext = os.path.splitext(f)
-            if(name.split('_')[0] != folder_name.split('_')[0] and ext.lower() not in (".png", ".jpg", ".jpeg", ".bmp")):
+            if(name.split('_')[0] != folder_name.split('_')[0] or ext.lower() not in (".png", ".jpg", ".jpeg", ".bmp")):
                 return False
-            match = re.search(r'_(\d+)$', name)
+            match = re.search(r'_(\d+)', name)
             if not match:
                 return False
             number = int(match.group(1))
@@ -350,6 +350,11 @@ class ImageStitcherApp:
             return
         if not save_dir:
             messagebox.showerror("错误", "请选择整图保存目录")
+            return
+        # 新增：保存目录不为空时弹窗提示并打断执行
+        if os.path.exists(save_dir) and os.listdir(save_dir):
+            messagebox.showwarning("提示", "保存目录不为空，请选择一个空目录！")
+            self.status_var.set("保存目录不为空，操作已中断")
             return
         try:
             self.status_var.set("正在处理图片...")

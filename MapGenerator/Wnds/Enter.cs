@@ -76,9 +76,9 @@ namespace MapGenerator
             imageList.ImageSize = new Size(128, 128);
 
 
-            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("map_icon/2dRPG.png")));
-            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("map_icon/2dTopDown.png")));
-            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("map_icon/coming.png")));
+            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("resources/map_icon/2dRPG.png")));
+            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("resources/map_icon/2dTopDown.png")));
+            imageList.Images.Add(Image.FromFile(AppSettings.GetImagePath("resources/map_icon/coming.png")));
             listView.LargeImageList = imageList;
 
             ListViewItem item1 = new ListViewItem("2dRPG");

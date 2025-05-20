@@ -8,11 +8,14 @@
         private int expandSize = 100;
         private Button exitMaskButton;
         private Button exitDecoratorButton; // 添加退出装饰模式的按钮
+        private Button resetButton;
         // 新增成员变量用于动态调整标尺刻度间隔
         private int rulerInterval = 5;
         // 定义装饰模式退出事件
-        public event EventHandler? DecoratorModeExited;
-        public event EventHandler? MaskModeExited;
+        public event EventHandler? OnDecoratorModeExited;
+        public event EventHandler? OnMaskModeExited;
+
+        public event EventHandler? OnResetLastDrawing;
         public int[] originSize = [512, 512];
 
         // 保留DecoratorItem类以确保向后兼容性
@@ -67,6 +70,21 @@
             exitMaskButton.Click += ExitMaskButton_Click;
             this.Controls.Add(exitMaskButton);
 
+            //在左上角（X，Y）位置显示一个size=120,120的按钮
+            resetButton = new Button
+            {
+                Text = "重置",
+                Width = 120,
+                Height = 120,
+                Location = new Point(10, 10),
+                DialogResult = DialogResult.OK
+            };
+            resetButton.Click += (sender, e) =>
+            {
+                OnResetLastDrawing?.Invoke(this, EventArgs.Empty);
+            };
+            resetButton.Visible = false;
+
             this.Paint += RulerDrawingControl_Paint;
             this.MouseMove += RulerDrawingControl_MouseMove;
             this.Resize += RulerPainting_Resize; // 添加大小改变事件处理
@@ -80,7 +98,7 @@
         {
             SetMaskMode(false);
 
-            MaskModeExited?.Invoke(this, EventArgs.Empty);
+            OnMaskModeExited?.Invoke(this, EventArgs.Empty);
         }
 
         // 添加退出按钮事件处理
@@ -92,7 +110,7 @@
             ClearDecorators();
 
             // 触发装饰模式退出事件
-            DecoratorModeExited?.Invoke(this, EventArgs.Empty);
+            OnDecoratorModeExited?.Invoke(this, EventArgs.Empty);
         }
 
         // 处理控件大小变化，更新退出按钮位置和刷新标尺
@@ -295,12 +313,6 @@
             canvasControl.ClearDecorators();
         }
 
-        // 设置装饰大小
-        public void SetDecoratorSize(int size)
-        {
-            canvasControl.SetDecoratorSize(size);
-        }
-
         // 获取画布中所有装饰的信息
         public List<PaintCanvas.DecoratorItem> GetDecorators()
         {
@@ -363,7 +375,7 @@
         protected override void OnMouseWheel(MouseEventArgs e)
         {
             if (e is System.Windows.Forms.HandledMouseEventArgs hme)
-                    hme.Handled = true;
+                hme.Handled = true;
         }
 
         // 修复获得焦点时滚动条跳到顶部
@@ -427,6 +439,19 @@
         public float GetCanvasZoomScale()
         {
             return canvasControl.GetZoomScale();
+        }
+
+        public void ShowResetButton(bool show)
+        {
+            if (show)
+            {
+                resetButton.Visible = true;
+                resetButton.BringToFront();
+            }
+            else
+            {
+                resetButton.Visible = false;
+            }
         }
     }
 }

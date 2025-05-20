@@ -48,6 +48,7 @@ namespace MapGenerator.Utils
                     {
                         // 创建PictureBox控件来显示图片
                         CheckableImageItem refItem = new CheckableImageItem();
+
                         refItem.SetContent(Path.GetFileNameWithoutExtension(imagePaths[i]), imagePaths[i], size);
 
                         // 添加点击事件，方便用户点击查看大图

@@ -1,0 +1,343 @@
+{
+  "78": {
+    "inputs": {
+      "text": "text,blur,messy,bad quality",
+      "clip": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "79": {
+    "inputs": {
+      "samples": [
+        "93",
+        0
+      ],
+      "vae": [
+        "83",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "80": {
+    "inputs": {
+      "text": [
+        "125",
+        0
+      ],
+      "clip": [
+        "84",
+        0
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "81": {
+    "inputs": {
+      "guidance": 30,
+      "conditioning": [
+        "80",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  },
+  "83": {
+    "inputs": {
+      "vae_name": "flux-ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "84": {
+    "inputs": {
+      "clip_name1": "flux\\clip_l.safetensors",
+      "clip_name2": "flux\\t5xxl_fp8_e4m3fn.safetensors",
+      "type": "flux",
+      "device": "default"
+    },
+    "class_type": "DualCLIPLoader",
+    "_meta": {
+      "title": "DualCLIPLoader"
+    }
+  },
+  "85": {
+    "inputs": {
+      "noise_mask": false,
+      "positive": [
+        "100",
+        0
+      ],
+      "negative": [
+        "78",
+        0
+      ],
+      "vae": [
+        "83",
+        0
+      ],
+      "pixels": [
+        "95",
+        0
+      ],
+      "mask": [
+        "96",
+        0
+      ]
+    },
+    "class_type": "InpaintModelConditioning",
+    "_meta": {
+      "title": "InpaintModelConditioning"
+    }
+  },
+  "86": {
+    "inputs": {
+      "model": [
+        "94",
+        0
+      ]
+    },
+    "class_type": "DifferentialDiffusion",
+    "_meta": {
+      "title": "Differential Diffusion"
+    }
+  },
+  "93": {
+    "inputs": {
+      "seed": 795746444735852,
+      "steps": 20,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "86",
+        0
+      ],
+      "positive": [
+        "85",
+        0
+      ],
+      "negative": [
+        "85",
+        1
+      ],
+      "latent_image": [
+        "85",
+        2
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "94": {
+    "inputs": {
+      "unet_name": "flux1-fill-dev-Q4_0.gguf"
+    },
+    "class_type": "UnetLoaderGGUF",
+    "_meta": {
+      "title": "Unet Loader (GGUF)"
+    }
+  },
+  "95": {
+    "inputs": {
+      "image": "ComfyUI_00004_.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "原图"
+    }
+  },
+  "96": {
+    "inputs": {
+      "channel": "red",
+      "image": [
+        "97",
+        0
+      ]
+    },
+    "class_type": "ImageToMask",
+    "_meta": {
+      "title": "Convert Image to Mask"
+    }
+  },
+  "97": {
+    "inputs": {
+      "image": "clipspace-mask-16325451.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "遮罩图"
+    }
+  },
+  "98": {
+    "inputs": {
+      "clip_name": "flux\\sigclip_vision_patch14_384.safetensors"
+    },
+    "class_type": "CLIPVisionLoader",
+    "_meta": {
+      "title": "Load CLIP Vision"
+    }
+  },
+  "99": {
+    "inputs": {
+      "style_model_name": "flux1-redux-dev.safetensors"
+    },
+    "class_type": "StyleModelLoader",
+    "_meta": {
+      "title": "Load Style Model"
+    }
+  },
+  "100": {
+    "inputs": {
+      "strength": 0.1,
+      "strength_type": "multiply",
+      "conditioning": [
+        "81",
+        0
+      ],
+      "style_model": [
+        "99",
+        0
+      ],
+      "clip_vision_output": [
+        "102",
+        0
+      ]
+    },
+    "class_type": "StyleModelApply",
+    "_meta": {
+      "title": "Apply Style Model"
+    }
+  },
+  "101": {
+    "inputs": {
+      "image": "法阵.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "参考图"
+    }
+  },
+  "102": {
+    "inputs": {
+      "crop": "none",
+      "clip_vision": [
+        "98",
+        0
+      ],
+      "image": [
+        "118",
+        0
+      ]
+    },
+    "class_type": "CLIPVisionEncode",
+    "_meta": {
+      "title": "CLIP Vision Encode"
+    }
+  },
+  "103": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "79",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "输出"
+    }
+  },
+  "118": {
+    "inputs": {
+      "interpolation": "LANCZOS",
+      "crop_position": "pad",
+      "sharpening": 0.1,
+      "image": [
+        "140",
+        0
+      ]
+    },
+    "class_type": "PrepImageForClipVision",
+    "_meta": {
+      "title": "Prep Image For ClipVision"
+    }
+  },
+  "125": {
+    "inputs": {
+      "Text_A": "",
+      "Text_B": "",
+      "Translate": true,
+      "From": "中文（简体）",
+      "To": "English",
+      "ID": "20250512002355368",
+      "Key": "iF4STUw9mty3Uc6C97Ow"
+    },
+    "class_type": "Baidu_Translater",
+    "_meta": {
+      "title": "𝙆 Baidu Translater"
+    }
+  },
+  "138": {
+    "inputs": {
+      "images": [
+        "140",
+        0
+      ]
+    },
+    "class_type": "PreviewImage",
+    "_meta": {
+      "title": "Preview Image"
+    }
+  },
+  "140": {
+    "inputs": {
+      "fill_background": true,
+      "background_color": "#ffffff",
+      "RGBA_image": [
+        "141",
+        0
+      ]
+    },
+    "class_type": "LayerUtility: ImageRemoveAlpha",
+    "_meta": {
+      "title": "LayerUtility: ImageRemoveAlpha"
+    }
+  },
+  "141": {
+    "inputs": {
+      "rem_mode": "RMBG-1.4",
+      "image_output": "Preview",
+      "save_prefix": "ComfyUI",
+      "torchscript_jit": false,
+      "images": [
+        "101",
+        0
+      ]
+    },
+    "class_type": "easy imageRemBg",
+    "_meta": {
+      "title": "Image Remove Bg"
+    }
+  }
+}
